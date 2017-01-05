@@ -1,0 +1,9 @@
+bin/
+obj/
+Debug/
+Release/
+.vs/
+*.swp
+*.opensdf
+*.sdf
+*.user
