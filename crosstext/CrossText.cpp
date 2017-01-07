@@ -4,7 +4,7 @@ namespace ct
 {
 	SlotSearchResult SlotSearchResult::notFound()
 	{
-		return SlotSearchResult(false, Slot(Rect(0.0f, 0.0f, 0.0f, 0.0f), 0));
+		return SlotSearchResult(false, Slot(Rect(), 0));
 	}
 
 	SlotSearchResult SlotSearchResult::found(Slot slot)
@@ -102,7 +102,7 @@ namespace ct
 		// if the whole thing is empty then just put at 0,0
 		if (_slots.empty())
 		{
-			Slot slot(Rect(0.0f, 0.0f, size), _nextIndex++);
+			Slot slot(Rect(0, 0, size), _nextIndex++);
 			_slots.push_back(slot);
 			return SlotSearchResult::found(slot);
 		}
@@ -122,7 +122,7 @@ namespace ct
 		return SlotSearchResult::notFound();
 	}
 
-	SlotSearchResult RectangleOrganizer::search(float y, Size size)
+	SlotSearchResult RectangleOrganizer::search(int y, Size size)
 	{
 		auto xOptions = findXOptions(y);
 		for (unsigned int i = 0; i < xOptions.size(); i++)
@@ -186,10 +186,10 @@ namespace ct
 
 	bool RectangleOrganizer::checkOverlap(Rect &a, Rect &b)
 	{
-		auto aStartsAfterBHorizontally = lessish(b.endX(), a.x());
-		auto bStartsAfterAHorizontally = lessish(a.endX(), b.x());
-		auto aStartsAfterBVertically = lessish(b.endY(), a.y());
-		auto bStartsAfterAVertically = lessish(a.endY(), b.y());
+		auto aStartsAfterBHorizontally = b.endX() < a.x();
+		auto bStartsAfterAHorizontally = a.endX() < b.x();
+		auto aStartsAfterBVertically = b.endY() < a.y();
+		auto bStartsAfterAVertically = a.endY() < b.y();
 
 		auto overlapsHorizontally = !aStartsAfterBHorizontally && !bStartsAfterAHorizontally;
 		auto overlapsVertically = !aStartsAfterBVertically && !bStartsAfterAVertically;
@@ -197,18 +197,18 @@ namespace ct
 		return overlapsHorizontally && overlapsVertically;
 	}
 
-	std::vector<float> RectangleOrganizer::findXOptions(float y)
+	std::vector<int> RectangleOrganizer::findXOptions(int y)
 	{
-		std::vector<float> result;
-		result.push_back(0.0f);
+		std::vector<int> result;
+		result.push_back(0);
 
 		for (unsigned int i = 0; i < _slots.size(); i++)
 		{
-			auto yOverlap = betweenish(y, _slots[i].rect().y(), _slots[i].rect().endY());
+			auto yOverlap = _slots[i].rect().y() <= y && y <= _slots[i].rect().endY();
 			if (yOverlap)
 			{
 				result.push_back(_slots[i].rect().x());
-				result.push_back(_slots[i].rect().endX());
+				result.push_back(_slots[i].rect().endX() + 1);
 			}
 		}
 
@@ -220,7 +220,7 @@ namespace ct
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
-	ct::DirectWriteRenderOptions options(ct::Size(1024.0f, 1024.0f));
+	ct::DirectWriteRenderOptions options(ct::Size(1024, 1024));
 	ct::TextManager manager(options);
 
 	ct::FontOptions fontOptions1(

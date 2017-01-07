@@ -109,8 +109,8 @@ namespace ct
 			_text.string().c_str(),
 			_text.string().size(),
 			font.format(),
-			_renderer.textureSize().width(),
-			_renderer.textureSize().height(),
+			(float)_renderer.textureSize().width(),
+			(float)_renderer.textureSize().height(),
 			&_layout);
 	}
 
@@ -137,14 +137,14 @@ namespace ct
 	{
 		DWRITE_TEXT_METRICS metrics;
 		_layout->GetMetrics(&metrics);
-		return Size(metrics.width, metrics.height);
+		return Size((int)ceilf(metrics.width), (int)ceilf(metrics.height));
 	}
 
 	void DirectWriteBuilder::render(DirectWriteImageData &imageData, Rect rect)
 	{
 		D2D1_POINT_2F origin;
-		origin.x = rect.x();
-		origin.y = rect.y();
+		origin.x = (float)rect.x();
+		origin.y = (float)rect.y();
 
 		ID2D1Brush *brush = convertBrush(_brush, imageData.target());
 		D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;

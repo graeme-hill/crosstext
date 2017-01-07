@@ -7,73 +7,52 @@
 
 namespace ct
 {
-	inline bool equalish(float a, float b)
-	{
-		auto diff = abs(a - b);
-		return diff < FLOAT_ERROR_MARGIN;
-	}
-
-	inline bool greaterish(float a, float b)
-	{
-		return (a + FLOAT_ERROR_MARGIN) > b;
-	}
-
-	inline bool lessish(float a, float b)
-	{
-		return (a - FLOAT_ERROR_MARGIN) < b;
-	}
-
-	inline bool betweenish(float value, float start, float end)
-	{
-		return start - FLOAT_ERROR_MARGIN < value && end + FLOAT_ERROR_MARGIN > value;
-	}
-
 	class Size
 	{
 	public:
-		Size(float width, float height) : 
+		Size(int width, int height) : 
 			_width(width), _height(height)
 		{ }
 
-		Size() : Size(0.0f, 0.0f)
+		Size() : Size(0, 0)
 		{ }
 
-		float width() const { return _width; }
-		float height() const { return _height; }
+		int width() const { return _width; }
+		int height() const { return _height; }
 
 	private:
-		float _width;
-		float _height;
+		int _width;
+		int _height;
 	};
 
 	class Rect
 	{
 	public:
 		Rect() :
-			Rect(0.0f, 0.0f, 0.0f, 0.0f)
+			Rect(0, 0, 0, 0)
 		{ }
 
-		Rect(float x, float y, Size size) :
+		Rect(int x, int y, Size size) :
 			Rect(x, y, size.width(), size.height())
 		{ }
 
-		Rect(float x, float y, float width, float height)
+		Rect(int x, int y, int width, int height)
 			: _x(x), _y(y), _width(width), _height(height)
 		{ }
 
-		float x() const { return _x; }
-		float y() const { return _y; }
-		float width() const { return _width; }
-		float height() const { return _height; }
+		int x() const { return _x; }
+		int y() const { return _y; }
+		int width() const { return _width; }
+		int height() const { return _height; }
 		Size size() const { return Size(_width, _height); }
-		float endX() const { return _x + _width; }
-		float endY() const { return _y + _height; }
+		int endX() const { return _x + _width - 1; }
+		int endY() const { return _y + _height - 1; }
 
 	private:
-		float _x;
-		float _y;
-		float _width;
-		float _height;
+		int _x;
+		int _y;
+		int _width;
+		int _height;
 	};
 
 	enum class FontWeight

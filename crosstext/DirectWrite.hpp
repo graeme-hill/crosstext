@@ -9,7 +9,7 @@
 #include <d2d1_1.h>
 #include <dwrite.h>
 
-#define DEFAULT_TEXTURE_SIZE 4096.0f
+#define DEFAULT_TEXTURE_SIZE 4096
 
 namespace ct
 {

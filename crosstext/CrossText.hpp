@@ -73,9 +73,9 @@ namespace ct
 
 	private:
 		bool isRectOpen(Rect &rect);
-		std::vector<float> findXOptions(float y);
+		std::vector<int> findXOptions(int y);
 		bool checkOverlap(Rect &a, Rect &b);
-		SlotSearchResult search(float y, Size size);
+		SlotSearchResult search(int y, Size size);
 		SlotSearchResult search(Slot &slot, Size size);
 
 		std::vector<Slot> _slots;
