@@ -55,6 +55,36 @@ namespace ct
 		int _height;
 	};
 
+	class Color
+	{
+	public:
+		Color(uint32_t rgba) : _rgba(rgba)
+		{ }
+
+		float redf()
+		{
+			return (_rgba >> 24) / 255.0f;
+		}
+
+		float greenf()
+		{
+			return ((_rgba & 0x00ff0000) >> 16) / 255.0f;
+		}
+
+		float bluef()
+		{
+			return ((_rgba & 0x0000ff00) >> 8) / 255.0f;
+		}
+
+		float alphaf()
+		{
+			return (_rgba & 0x000000ff) / 255.0f;
+		}
+
+	private:
+		uint32_t _rgba;
+	};
+
 	enum class FontWeight
 	{
 		Thin = 100,
@@ -92,69 +122,22 @@ namespace ct
 		UltraExpanded
 	};
 
-	class FontOptions
+	class Range
 	{
 	public:
-		FontOptions(
-			std::wstring family,
-			FontWeight weight,
-			FontStyle style,
-			FontStretch stretch,
-			float size,
-			std::wstring locale)
-			:
-			_family(family),
-			_weight(weight),
-			_style(style),
-			_stretch(stretch),
-			_size(size),
-			_locale(locale)
+		Range(unsigned int start, unsigned int length) :
+			_start(start), _length(length)
+		{ }
+		Range() :
+			Range(0, 0)
 		{ }
 
-		std::wstring &family() { return _family; }
-		FontWeight weight() { return _weight; }
-		FontStyle style() { return _style; }
-		FontStretch stretch() { return _stretch; }
-		float size() { return _size; }
-		std::wstring &locale() { return _locale; }
+		unsigned int start() const { return _start; }
+		unsigned int length() const { return _length; }
 
 	private:
-		std::wstring _family;
-		FontWeight _weight;
-		FontStyle _style;
-		FontStretch _stretch;
-		float _size;
-		std::wstring _locale;
-	};
-
-	class Color
-	{
-	public:
-		Color(uint32_t rgba) : _rgba(rgba)
-		{ }
-
-		float redf()
-		{
-			return (_rgba >> 24) / 255.0f;
-		}
-
-		float greenf()
-		{
-			return ((_rgba & 0x00ff0000) >> 16) / 255.0f;
-		}
-
-		float bluef()
-		{
-			return ((_rgba & 0x0000ff00) >> 8) / 255.0f;
-		}
-
-		float alphaf()
-		{
-			return (_rgba & 0x000000ff) / 255.0f;
-		}
-
-	private:
-		uint32_t _rgba;
+		unsigned int _start;
+		unsigned int _length;
 	};
 
 	class Brush
@@ -167,6 +150,60 @@ namespace ct
 
 	private:
 		Color _color;
+	};
+
+	class FontOptions
+	{
+	public:
+		FontOptions(
+			std::wstring family,
+			FontWeight weight,
+			FontStyle style,
+			FontStretch stretch,
+			float size,
+			std::wstring locale,
+			Brush foreground)
+			:
+			_family(family),
+			_weight(weight),
+			_style(style),
+			_stretch(stretch),
+			_size(size),
+			_locale(locale),
+			_foreground(foreground)
+		{ }
+
+		std::wstring &family() { return _family; }
+		FontWeight weight() { return _weight; }
+		FontStyle style() { return _style; }
+		FontStretch stretch() { return _stretch; }
+		float size() { return _size; }
+		std::wstring &locale() { return _locale; }
+		Brush foreground() { return _foreground; }
+
+	private:
+		std::wstring _family;
+		FontWeight _weight;
+		FontStyle _style;
+		FontStretch _stretch;
+		float _size;
+		std::wstring _locale;
+		Brush _foreground;
+	};
+
+	class FontRange
+	{
+	public:
+		FontRange(FontOptions fontOptions, Range range) :
+			_fontOptions(fontOptions), _range(range)
+		{ }
+		
+		FontOptions fontOptions() const { return _fontOptions; }
+		Range range() const { return _range; }
+
+	private:
+		FontOptions _fontOptions;
+		Range _range;
 	};
 
 	class Text

@@ -34,15 +34,16 @@ namespace ct
 		return Placement(false, _textures[0], Slot());
 	}
 
-	void TextManager::releaseRect(Texture &texture, unsigned long index)
+	void TextManager::releaseRect(Texture &texture, Slot slot)
 	{
-		texture.organizer().releaseSlot(index);
+		texture.imageData().clearRect(slot.rect());
+		texture.organizer().releaseSlot(slot.index());
 	}
 
-	TextBlock::TextBlock(TextManager &manager, Text text, Font &font, Brush brush) :
+	TextBlock::TextBlock(TextManager &manager, Text text, FontOptions font) :
 		_manager(manager), _texture(nullptr)
 	{
-		TBuilder builder(manager.renderer(), text, font.systemFont(), brush);
+		TBuilder builder(manager.renderer(), text, font);
 		auto size = builder.size();
 		auto placement = manager.findPlacement(size);
 		_slot = placement.slot();
@@ -62,7 +63,7 @@ namespace ct
 	{
 		if (_texture)
 		{
-			_manager.releaseRect(*_texture, _slot.index());
+			_manager.releaseRect(*_texture, _slot);
 		}
 	}
 
@@ -79,9 +80,9 @@ namespace ct
 		_texture(texture), _slot(slot), _isFound(isFound)
 	{ }
 
-	Font::Font(TextManager &manager, FontOptions options) :
-		_systemFont(manager.renderer(), options)
-	{ }
+	//Font::Font(TextManager &manager, FontOptions options) :
+	//	_systemFont(manager.renderer(), options)
+	//{ }
 
 	RectangleOrganizer::RectangleOrganizer(Size size) :
 		_size(size), _nextIndex(0)
@@ -149,7 +150,7 @@ namespace ct
 		return bottomResult;
 	}
 
-	bool RectangleOrganizer::releaseSlot(unsigned long index)
+	bool RectangleOrganizer::releaseSlot(uint64_t index)
 	{
 		for (unsigned int i = 0; i < _slots.size(); i++)
 		{
@@ -224,20 +225,22 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 	ct::TextManager manager(options);
 
 	ct::FontOptions fontOptions1(
-		L"Times New Roman",
+		L"Arial",
 		ct::FontWeight::Normal,
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
 		20.0f,
-		L"en-US");
+		L"en-US",
+		ct::Color(0xffffffff));
 
 	ct::FontOptions fontOptions2(
-		L"Comic Sans MS",
+		L"Arial",
 		ct::FontWeight::Normal,
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
 		60.0f,
-		L"en-US");
+		L"en-US",
+		ct::Color(0xffffffff));
 
 	ct::FontOptions fontOptions3(
 		L"Arial",
@@ -245,35 +248,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
 		14.0f,
-		L"en-US");
+		L"en-US",
+		ct::Color(0xffff00ff));
 
-	ct::Brush brush1(ct::Color(0xffffffff));
-	ct::Brush brush2(ct::Color(0xff00ffff));
-	ct::Brush brush3(ct::Color(0xffff00ff));
+	ct::TextBlock multiRun1(manager, ct::Text(std::wstring(L"Graeme")), fontOptions1);
 
-	ct::Font font1(manager, fontOptions1);
-	ct::Font font2(manager, fontOptions2);
-	ct::Font font3(manager, fontOptions3);
-	//ct::Brush brush(manager, brushOptions);
-
-	ct::TextBlock hello1a(manager, ct::Text(std::wstring(L"Here are some medium sized letters.")), font1, brush1);
-	ct::TextBlock hello2a(manager, ct::Text(std::wstring(L"Here are some really big letters")), font2, brush2);
-	ct::TextBlock hello3a(manager, ct::Text(std::wstring(L"Tiny tiny letters here :-)")), font3, brush3);
-
-	ct::TextBlock hello1b(manager, ct::Text(std::wstring(L"This is some more medium sized.")), font1, brush1);
-	ct::TextBlock hello2b(manager, ct::Text(std::wstring(L"BIG BIG BIG <(^_^<)")), font2, brush2);
-	ct::TextBlock hello3b(manager, ct::Text(std::wstring(L"Little")), font3, brush3);
-
-	ct::TextBlock hello1c(manager, ct::Text(std::wstring(L"M M M M Medium.")), font1, brush1);
-	ct::TextBlock hello3c(manager, ct::Text(std::wstring(L"This is a longer string of text just because that is what I want to test This is a longer string of text just because that is what I want to test This is a longer string of text just because that is what I want to test")), font3, brush3);
-	ct::TextBlock hello2c(manager, ct::Text(std::wstring(L"(>^_^)> BIG BIG BIG")), font2, brush2);
-	ct::TextBlock hello4c(manager, ct::Text(std::wstring(L"^~^")), font2, brush3);
-	ct::TextBlock hello5c(manager, ct::Text(std::wstring(L":^)")), font2, brush1);
-	ct::TextBlock hello6c(manager, ct::Text(std::wstring(L":^)")), font2, brush2);
-	ct::TextBlock hello7c(manager, ct::Text(std::wstring(L":^)")), font2, brush2);
-	ct::TextBlock hello8c(manager, ct::Text(std::wstring(L":^)")), font2, brush2);
-
-	hello1a.texture()->imageData().savePng(L"C:\\temp\\test3.png");
+	multiRun1.texture()->imageData().savePng(L"C:\\temp\\test3.png");
 
 	return 0;
 }

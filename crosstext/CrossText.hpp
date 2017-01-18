@@ -10,7 +10,7 @@ namespace ct
 	typedef DirectWriteBuilder TBuilder;
 	typedef DirectWriteRenderer TRenderer;
 	typedef DirectWriteImageData TImageData;
-	typedef DirectWriteFont TSystemFont;
+	//typedef DirectWriteFont TSystemFont;
 	//typedef DirectWriteBrush TSystemBrush;
 }
 #endif
@@ -35,14 +35,14 @@ namespace ct
 		Slot() :
 			Slot(Rect(), 0)
 		{ }
-		Slot(Rect rect, unsigned long index) :
+		Slot(Rect rect, uint64_t index) :
 			_rect(rect), _index(index)
 		{ }
 		Rect rect() { return _rect; }
-		unsigned long index() { return _index; }
+		uint64_t index() { return _index; }
 	private:
 		Rect _rect;
-		unsigned long _index;
+		uint64_t _index;
 	};
 
 	class SlotSearchResult
@@ -69,7 +69,7 @@ namespace ct
 		RectangleOrganizer(const RectangleOrganizer &) = delete;
 		RectangleOrganizer(RectangleOrganizer &&);
 		SlotSearchResult tryClaimSlot(Size size);
-		bool releaseSlot(unsigned long index);
+		bool releaseSlot(uint64_t index);
 
 	private:
 		bool isRectOpen(Rect &rect);
@@ -80,7 +80,7 @@ namespace ct
 
 		std::vector<Slot> _slots;
 		Size _size;
-		unsigned long _nextIndex;
+		uint64_t _nextIndex;
 	};
 
 	class TextManager
@@ -90,7 +90,7 @@ namespace ct
 		TextManager(const TextManager &) = delete;
 		TextManager(TextManager &&) = delete;
 		Placement findPlacement(Size size);
-		void releaseRect(Texture &texture, unsigned long index);
+		void releaseRect(Texture &texture, Slot slot);
 
 		TRenderer &renderer() { return _renderer; }
 
@@ -102,7 +102,10 @@ namespace ct
 	class TextBlock
 	{
 	public:
-		TextBlock(TextManager &manager, Text text, Font &font, Brush brush);
+		TextBlock(TextManager &manager, Text text, FontOptions font);
+
+		TextBlock(TextManager &manager, Text text, FontOptions font, std::vector<FontRange> fontRanges);
+
 		TextBlock(const TextBlock &) = delete;
 		TextBlock(TextBlock &&);
 		~TextBlock();
@@ -112,6 +115,7 @@ namespace ct
 		TextManager &_manager;
 		Texture *_texture;
 		Slot _slot;
+		std::vector<FontRange> _fontRanges;
 	};
 
 	class Texture
@@ -142,14 +146,35 @@ namespace ct
 		bool _isFound;
 	};
 
-	class Font
+	//class Font
+	//{
+	//public:
+	//	Font(TextManager &manager, FontOptions options);
+	//	TSystemFont &systemFont() { return _systemFont; }
+
+	//private:
+	//	TSystemFont _systemFont;
+	//};
+
+	class Timer
 	{
 	public:
-		Font(TextManager &manager, FontOptions options);
-		TSystemFont &systemFont() { return _systemFont; }
+		Timer()
+		{
+			QueryPerformanceFrequency(&_frequency);
+			QueryPerformanceCounter(&_start);
+		}
+
+		double millis()
+		{
+			LARGE_INTEGER now;
+			QueryPerformanceCounter(&now);
+			return (now.QuadPart - _start.QuadPart) * 1000.0 / _frequency.QuadPart;
+		}
 
 	private:
-		TSystemFont _systemFont;
+		LARGE_INTEGER _frequency;
+		LARGE_INTEGER _start;
 	};
 }
 

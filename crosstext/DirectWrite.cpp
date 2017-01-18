@@ -94,43 +94,68 @@ namespace ct
 			_dxgiDevice->Release();
 	}
 
+	//DirectWriteFont::DirectWriteFont(DirectWriteRenderer &renderer, FontOptions fontOptions)
+	//{
+	//	renderer.dwriteFactory()->CreateTextFormat(
+	//		fontOptions.family().c_str(),
+	//		nullptr,
+	//		convertFontWeight(fontOptions.weight()),
+	//		convertFontStyle(fontOptions.style()),
+	//		convertFontStretch(fontOptions.stretch()),
+	//		fontOptions.size(),
+	//		fontOptions.locale().c_str(),
+	//		&_format);
+	//}
+
+	//DirectWriteFont::~DirectWriteFont()
+	//{
+	//	if (_format)
+	//		_format->Release();
+	//}
+
 	DirectWriteBuilder::DirectWriteBuilder(
 		DirectWriteRenderer &renderer,
 		Text text,
-		DirectWriteFont &font,
-		Brush brush)
+		FontOptions font)
 		:
 		_renderer(renderer),
 		_text(text),
 		_layout(nullptr),
-		_brush(brush)
+		_format(nullptr),
+		_font(font)
 	{
+		renderer.dwriteFactory()->CreateTextFormat(
+			font.family().c_str(),
+			nullptr,
+			convertFontWeight(font.weight()),
+			convertFontStyle(font.style()),
+			convertFontStretch(font.stretch()),
+			font.size(),
+			font.locale().c_str(),
+			&_format);
+
 		_renderer.dwriteFactory()->CreateTextLayout(
 			_text.string().c_str(),
 			_text.string().size(),
-			font.format(),
+			_format,
 			(float)_renderer.textureSize().width(),
 			(float)_renderer.textureSize().height(),
 			&_layout);
+		
+		if (_text.string().size() > 2)
+		{
+			DWRITE_TEXT_RANGE range{ 1, 1 };
+			_layout->SetFontSize(72.0f, range);
+		}
 	}
 
-	DirectWriteFont::DirectWriteFont(DirectWriteRenderer &renderer, FontOptions fontOptions)
-	{
-		renderer.dwriteFactory()->CreateTextFormat(
-			fontOptions.family().c_str(),
-			nullptr,
-			convertFontWeight(fontOptions.weight()),
-			convertFontStyle(fontOptions.style()),
-			convertFontStretch(fontOptions.stretch()),
-			fontOptions.size(),
-			fontOptions.locale().c_str(),
-			&_format);
-	}
-
-	DirectWriteFont::~DirectWriteFont()
+	DirectWriteBuilder::~DirectWriteBuilder()
 	{
 		if (_format)
 			_format->Release();
+
+		if (_layout)
+			_layout->Release();
 	}
 
 	Size DirectWriteBuilder::size() const
@@ -145,25 +170,28 @@ namespace ct
 		D2D1_POINT_2F origin;
 		origin.x = (float)rect.x();
 		origin.y = (float)rect.y();
+		
+		ID2D1Brush *transparent = convertBrush(Brush(ct::Color(0x00000000)), imageData.target());
 
-		ID2D1Brush *brush = convertBrush(_brush, imageData.target());
+		ID2D1Brush *brush = convertBrush(_font.foreground(), imageData.target());
 		D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;
 
 		imageData.target()->BeginDraw();
 		imageData.target()->SetTransform(D2D1::Matrix3x2F::Identity());
-		//imageData.target()->Clear(convertColor(Color(0x00000000)));
 		imageData.target()->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
 		imageData.target()->DrawTextLayout(origin, _layout, brush, options);
 		imageData.target()->EndDraw();
-
 		brush->Release();
+		transparent->Release();
 	}
 
 	DirectWriteImageData::DirectWriteImageData(DirectWriteRenderer &renderer, Size size) :
 		_bitmap(nullptr),
 		_renderTarget(nullptr),
 		_renderer(renderer),
-		_size(size)
+		_size(size),
+		_transparentData{ (char)0, (char)0, (char)0, (char)0 },
+		_transparentBmp(nullptr)
 	{
 		renderer.wicFactory()->CreateBitmap(
 			(int)renderer.textureSize().width(),
@@ -171,41 +199,65 @@ namespace ct
 			GUID_WICPixelFormat32bppPRGBA,
 			WICBitmapCacheOnLoad,
 			&_bitmap);
-
+		
 		auto result = renderer.d2dFactory()->CreateWicBitmapRenderTarget(
 			_bitmap,
 			D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)),
 			&_renderTarget);
 
-		//_renderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
-
-		// Make sure it is completely transparent to start off
-		//_renderTarget->Clear(convertColor(Color(0xff000000)));
-		//D2D1_RECT_F rect;
-		//rect.left = 0.0f;
-		//rect.top = 0.0f;
-		//rect.right = 0.0f;
-		//rect.bottom = 0.0f;
-		//ID2D1SolidColorBrush *brush;
-		//auto color = convertColor(Color(0x00000000));
-		//_renderTarget->CreateSolidColorBrush(color, &brush);
-		//_renderTarget->FillRectangle(&rect, brush);
+		D2D1_SIZE_U transparentBitmapSize;
+		transparentBitmapSize.width = 1;
+		transparentBitmapSize.height = 1;
+		D2D1_BITMAP_PROPERTIES props;
+		props.dpiX = 100.0f;
+		props.dpiY = 100.0f;
+		D2D1_PIXEL_FORMAT format;
+		format.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		format.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
+		props.pixelFormat = format;
+		result = _renderTarget->CreateBitmap(transparentBitmapSize, (void *)_transparentData, 4, props, &_transparentBmp);
 	}
 
 	DirectWriteImageData::DirectWriteImageData(DirectWriteImageData &&other) :
 		_bitmap(other._bitmap),
 		_renderTarget(other._renderTarget),
 		_renderer(other._renderer),
-		_size(other._size)
+		_size(other._size),
+		_transparentBmp(other._transparentBmp),
+		_transparentData{ (char)0, (char)0, (char)0, (char)0 }
 	{
 		other._bitmap = nullptr;
 		other._renderTarget = nullptr;
+		other._transparentBmp = nullptr;
+	}
+
+	void DirectWriteImageData::clearRect(Rect rect)
+	{
+		IWICBitmapLock *lock;
+		WICRect lockRect = { 0, rect.y(), _size.width(), rect.height() };
+		_bitmap->Lock(&lockRect, WICBitmapLockWrite, &lock);
+		BYTE *bytes = NULL;
+		UINT bufferSize = 0;
+		auto bytesPerLine = rect.width() * 4;
+		lock->GetDataPointer(&bufferSize, &bytes);
+
+		for (auto i = 0; i < rect.height(); i++)
+		{
+			BYTE *lineStart = bytes + (((i * _size.width()) + rect.x()) * 4);
+			memset(lineStart, 0, bytesPerLine);
+		}
+
+		lock->Release();
 	}
 
 	DirectWriteImageData::~DirectWriteImageData()
 	{
+		if (_transparentBmp)
+			_transparentBmp->Release();
+
 		if (_bitmap)
 			_bitmap->Release();
+
 		// _renderTarget->Release(); is not called here because it just throws an error saying
 		// that it is not implemented.
 	}

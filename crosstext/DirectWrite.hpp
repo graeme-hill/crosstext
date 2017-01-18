@@ -56,26 +56,30 @@ namespace ct
 		IWICBitmap *bitmap() { return _bitmap; }
 		Size size() const { return _size; }
 		void savePng(LPCWSTR path);
+		ID2D1Bitmap *transparentBmp() { return _transparentBmp; }
+		void clearRect(Rect rect);
 
 	private:
 		IWICBitmap *_bitmap;
 		ID2D1RenderTarget *_renderTarget;
 		DirectWriteRenderer &_renderer;
 		Size _size;
+		char _transparentData[4];
+		ID2D1Bitmap *_transparentBmp;
 	};
 
-	class DirectWriteFont
-	{
-	public:
-		DirectWriteFont(DirectWriteRenderer &renderer, FontOptions fontOptions);
-		DirectWriteFont(const DirectWriteFont &) = delete;
-		DirectWriteFont(DirectWriteFont &&) = delete;
-		~DirectWriteFont();
-		IDWriteTextFormat *format() { return _format; }
+	//class DirectWriteFont
+	//{
+	//public:
+	//	DirectWriteFont(DirectWriteRenderer &renderer, FontOptions fontOptions);
+	//	DirectWriteFont(const DirectWriteFont &) = delete;
+	//	DirectWriteFont(DirectWriteFont &&) = delete;
+	//	~DirectWriteFont();
+	//	IDWriteTextFormat *format() { return _format; }
 
-	private:
-		IDWriteTextFormat *_format;
-	};
+	//private:
+	//	IDWriteTextFormat *_format;
+	//};
 
 	class DirectWriteBuilder
 	{
@@ -83,19 +87,21 @@ namespace ct
 		DirectWriteBuilder(
 			DirectWriteRenderer &renderer,
 			Text text,
-			DirectWriteFont &font,
-			Brush brush);
+			FontOptions font);
 		DirectWriteBuilder(const DirectWriteBuilder &) = delete;
 		DirectWriteBuilder(DirectWriteBuilder &&) = delete;
+		~DirectWriteBuilder();
 
 		Size size() const;
 		void render(DirectWriteImageData &imageData, Rect rect);
+		void clearRect(DirectWriteImageData &imageData, Rect rect);
 
 	private:
 		DirectWriteRenderer &_renderer;
-		Brush _brush;
 		Text _text;
 		IDWriteTextLayout *_layout;
+		IDWriteTextFormat *_format;
+		FontOptions _font;
 	};
 
 	D2D1_COLOR_F convertColor(Color color);
