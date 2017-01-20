@@ -15,6 +15,7 @@ namespace ct
 
 #define OPENING_MIN_HEIGHT 1.0f
 #define OPENING_MIN_WIDTH 1.0f
+#define SPACIAL_INDEX_BLOCK_SIZE 64
 
 namespace ct
 {
@@ -60,6 +61,26 @@ namespace ct
 		Slot _slot;
 	};
 
+	class SpacialSlotIndex
+	{
+	public:
+		SpacialSlotIndex(Size size, unsigned int blockSize);
+		SpacialSlotIndex(const SpacialSlotIndex &other) = delete;
+		SpacialSlotIndex(SpacialSlotIndex &&other) = delete;
+		void add(Slot slot);
+		void remove(Slot slot);
+
+	private:
+		unsigned int _blockSize;
+		unsigned int _xBlocks;
+		unsigned int _yBlocks;
+		std::vector<std::vector<uint64_t>> _data;
+
+		unsigned int getBlockIndex(unsigned int x, unsigned int y);
+		void removeSlotIndex(std::vector<uint64_t> &indexes, uint64_t slotIndex);
+		static unsigned int calcBlockCount(unsigned int totalSize, unsigned int blockSize);
+	};
+
 	class RectangleOrganizer
 	{
 	public:
@@ -79,6 +100,7 @@ namespace ct
 		std::vector<Slot> _slots;
 		Size _size;
 		uint64_t _nextIndex;
+		SpacialSlotIndex _spacialIndex;
 	};
 
 	class TextManager

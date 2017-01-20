@@ -1,5 +1,6 @@
 #include "CrossText.hpp"
 #include <iostream>
+#include <algorithm>
 
 namespace ct
 {
@@ -93,14 +94,76 @@ namespace ct
 		_texture(texture), _slot(slot), _isFound(isFound)
 	{ }
 
+	SpacialSlotIndex::SpacialSlotIndex(Size size, unsigned int blockSize) :
+		_blockSize(blockSize),
+		_xBlocks(calcBlockCount(size.width(), blockSize)),
+		_yBlocks(calcBlockCount(size.height(), blockSize)),
+		_data(_xBlocks * _yBlocks)
+	{ }
+
+	void SpacialSlotIndex::add(Slot slot)
+	{
+		auto leftColumn = slot.rect().x() / _blockSize;
+		auto rightColumn = slot.rect().endX() / _blockSize;
+		auto topRow = slot.rect().y() / _blockSize;
+		auto bottomRow = slot.rect().endY() / _blockSize;
+
+		for (unsigned int col = leftColumn; col <= rightColumn; col++)
+		{
+			for (unsigned int row = topRow; row <= bottomRow; row++)
+			{
+				auto index = row * _xBlocks + col;
+				_data[index].push_back(slot.index());
+			}
+		}
+	}
+
+	void SpacialSlotIndex::remove(Slot slot)
+	{
+		auto leftColumn = slot.rect().x() / _blockSize;
+		auto rightColumn = slot.rect().endX() / _blockSize;
+		auto topRow = slot.rect().y() / _blockSize;
+		auto bottomRow = slot.rect().endY() / _blockSize;
+
+		for (unsigned int col = leftColumn; col <= rightColumn; col++)
+		{
+			for (unsigned int row = topRow; row <= bottomRow; row++)
+			{
+				auto index = row * _xBlocks + col;
+				removeSlotIndex(_data[index], slot.index());
+			}
+		}
+	}
+
+	unsigned int SpacialSlotIndex::getBlockIndex(unsigned int x, unsigned int y)
+	{
+		auto xBlock = x / _blockSize;
+		auto yBlock = y / _blockSize;
+
+		return yBlock * _xBlocks + xBlock;
+	}
+
+	void SpacialSlotIndex::removeSlotIndex(std::vector<uint64_t> &indexes, uint64_t slotIndex)
+	{
+		indexes.erase(std::remove(indexes.begin(), indexes.end(), slotIndex));
+	}
+
+	unsigned int SpacialSlotIndex::calcBlockCount(unsigned int totalSize, unsigned int blockSize)
+	{
+		auto wholeBlocks = totalSize / blockSize;
+		auto bonusBlocks = (totalSize - (wholeBlocks * blockSize)) > 0 ? 1 : 0;
+		return wholeBlocks + bonusBlocks;
+	}
+
 	RectangleOrganizer::RectangleOrganizer(Size size) :
-		_size(size), _nextIndex(0)
+		_size(size), _nextIndex(0), _spacialIndex(size, SPACIAL_INDEX_BLOCK_SIZE)
 	{ }
 
 	RectangleOrganizer::RectangleOrganizer(RectangleOrganizer &&other) :
 		_size(other._size),
 		_nextIndex(other._nextIndex),
-		_slots(std::move(other._slots))
+		_slots(std::move(other._slots)),
+		_spacialIndex(other._size, SPACIAL_INDEX_BLOCK_SIZE)
 	{ }
 
 	SlotSearchResult RectangleOrganizer::tryClaimSlot(Size size)
@@ -114,6 +177,7 @@ namespace ct
 		{
 			Slot slot(Rect(0, 0, size), _nextIndex++);
 			_slots.push_back(slot);
+			_spacialIndex.add(slot);
 			return SlotSearchResult::found(slot);
 		}
 
@@ -165,6 +229,7 @@ namespace ct
 		{
 			if (_slots[i].index() == index)
 			{
+				_spacialIndex.remove(_slots[i]);
 				_slots.erase(_slots.begin() + i);
 				return true;
 			}
