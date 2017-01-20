@@ -2,7 +2,7 @@
 
 #include "Common.hpp"
 
-#ifdef _WINDOWS
+#ifdef OS_WINDOWS
 #include "DirectWrite.hpp"
 namespace ct
 {
@@ -10,8 +10,6 @@ namespace ct
 	typedef DirectWriteBuilder TBuilder;
 	typedef DirectWriteRenderer TRenderer;
 	typedef DirectWriteImageData TImageData;
-	//typedef DirectWriteFont TSystemFont;
-	//typedef DirectWriteBrush TSystemBrush;
 }
 #endif
 
@@ -93,6 +91,7 @@ namespace ct
 		void releaseRect(Texture &texture, Slot slot);
 
 		TRenderer &renderer() { return _renderer; }
+		std::vector<Texture> &textures() { return _textures; }
 
 	private:
 		std::vector<Texture> _textures;
@@ -102,9 +101,9 @@ namespace ct
 	class TextBlock
 	{
 	public:
-		TextBlock(TextManager &manager, Text text, FontOptions font);
+		TextBlock(TextManager &manager, std::wstring text, FontOptions font);
 
-		TextBlock(TextManager &manager, Text text, FontOptions font, std::vector<FontRange> fontRanges);
+		TextBlock(TextManager &manager, std::wstring text, FontOptions font, std::vector<FontRange> fontRanges);
 
 		TextBlock(const TextBlock &) = delete;
 		TextBlock(TextBlock &&);
@@ -145,16 +144,6 @@ namespace ct
 		Slot _slot;
 		bool _isFound;
 	};
-
-	//class Font
-	//{
-	//public:
-	//	Font(TextManager &manager, FontOptions options);
-	//	TSystemFont &systemFont() { return _systemFont; }
-
-	//private:
-	//	TSystemFont _systemFont;
-	//};
 
 	class Timer
 	{

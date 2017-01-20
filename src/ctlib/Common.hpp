@@ -10,7 +10,7 @@ namespace ct
 	class Size
 	{
 	public:
-		Size(int width, int height) : 
+		Size(int width, int height) :
 			_width(width), _height(height)
 		{ }
 
@@ -197,26 +197,12 @@ namespace ct
 		FontRange(FontOptions fontOptions, Range range) :
 			_fontOptions(fontOptions), _range(range)
 		{ }
-		
+
 		FontOptions fontOptions() const { return _fontOptions; }
 		Range range() const { return _range; }
 
 	private:
 		FontOptions _fontOptions;
 		Range _range;
-	};
-
-	class Text
-	{
-	public:
-		Text(std::wstring string) : /*, FontOptions fontOptions*/
-			_string(string) //, _fontOptions(fontOptions)
-		{ }
-		std::wstring &string() { return _string; }
-		//FontOptions &fontOptions() { return _fontOptions; }
-
-	private:
-		std::wstring _string;
-		//FontOptions _fontOptions;
 	};
 }

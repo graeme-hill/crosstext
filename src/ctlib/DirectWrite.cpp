@@ -3,11 +3,11 @@
 namespace ct
 {
 	DirectWriteRenderOptions::DirectWriteRenderOptions() :
-		DirectWriteRenderOptions(Size(DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE))
+		DirectWriteRenderOptions(Size(DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE), DEFAULT_TEXTURE_COUNT)
 	{ }
 
-	DirectWriteRenderOptions::DirectWriteRenderOptions(Size textureSize) :
-		_textureSize(textureSize)
+	DirectWriteRenderOptions::DirectWriteRenderOptions(Size textureSize, unsigned int textureCount) :
+		_textureSize(textureSize), _textureCount(textureCount)
 	{ }
 
 	DirectWriteRenderer::DirectWriteRenderer(DirectWriteRenderOptions options) :
@@ -48,7 +48,7 @@ namespace ct
 
 		// Get dxgi from device because we need that for D2D too
 		_d3dDevice->QueryInterface(
-			__uuidof(IDXGIDevice), 
+			__uuidof(IDXGIDevice),
 			reinterpret_cast<void**>(&_dxgiDevice));
 
 		// Create D2D context
@@ -58,7 +58,7 @@ namespace ct
 
 		// DirectWrite factory for making text layouts and stuff
 		DWriteCreateFactory(
-			DWRITE_FACTORY_TYPE_SHARED, 
+			DWRITE_FACTORY_TYPE_SHARED,
 			__uuidof(IDWriteFactory),
 			reinterpret_cast<IUnknown**>(&_dwriteFactory));
 
@@ -94,29 +94,11 @@ namespace ct
 			_dxgiDevice->Release();
 	}
 
-	//DirectWriteFont::DirectWriteFont(DirectWriteRenderer &renderer, FontOptions fontOptions)
-	//{
-	//	renderer.dwriteFactory()->CreateTextFormat(
-	//		fontOptions.family().c_str(),
-	//		nullptr,
-	//		convertFontWeight(fontOptions.weight()),
-	//		convertFontStyle(fontOptions.style()),
-	//		convertFontStretch(fontOptions.stretch()),
-	//		fontOptions.size(),
-	//		fontOptions.locale().c_str(),
-	//		&_format);
-	//}
-
-	//DirectWriteFont::~DirectWriteFont()
-	//{
-	//	if (_format)
-	//		_format->Release();
-	//}
-
 	DirectWriteBuilder::DirectWriteBuilder(
 		DirectWriteRenderer &renderer,
-		Text text,
-		FontOptions font)
+		std::wstring text,
+		FontOptions font,
+		std::vector<FontRange> &fontRanges)
 		:
 		_renderer(renderer),
 		_text(text),
@@ -135,17 +117,49 @@ namespace ct
 			&_format);
 
 		_renderer.dwriteFactory()->CreateTextLayout(
-			_text.string().c_str(),
-			_text.string().size(),
+			_text.c_str(),
+			(UINT32)_text.size(),
 			_format,
 			(float)_renderer.textureSize().width(),
 			(float)_renderer.textureSize().height(),
 			&_layout);
-		
-		if (_text.string().size() > 2)
+
+		auto a = font;
+		for (auto &fontRange : fontRanges)
 		{
-			DWRITE_TEXT_RANGE range{ 1, 1 };
-			_layout->SetFontSize(72.0f, range);
+			auto range = fontRange.range();
+			auto b = fontRange.fontOptions();
+			DWRITE_TEXT_RANGE dwriteRange{ range.start(), range.length() };
+
+			if (a.family() != b.family())
+			{
+				_layout->SetFontFamilyName(b.family().c_str(), dwriteRange);
+			}
+
+			if (a.size() != b.size())
+			{
+				_layout->SetFontSize(b.size(), dwriteRange);
+			}
+
+			if (a.stretch() != b.stretch())
+			{
+				_layout->SetFontStretch(convertFontStretch(b.stretch()), dwriteRange);
+			}
+
+			if (a.style() != b.style())
+			{
+				_layout->SetFontStyle(convertFontStyle(b.style()), dwriteRange);
+			}
+
+			if (a.weight() != b.weight())
+			{
+				_layout->SetFontWeight(convertFontWeight(b.weight()), dwriteRange);
+			}
+
+			if (a.locale() != b.locale())
+			{
+				_layout->SetLocaleName(b.locale().c_str(), dwriteRange);
+			}
 		}
 	}
 
@@ -170,7 +184,7 @@ namespace ct
 		D2D1_POINT_2F origin;
 		origin.x = (float)rect.x();
 		origin.y = (float)rect.y();
-		
+
 		ID2D1Brush *transparent = convertBrush(Brush(ct::Color(0x00000000)), imageData.target());
 
 		ID2D1Brush *brush = convertBrush(_font.foreground(), imageData.target());
@@ -199,7 +213,7 @@ namespace ct
 			GUID_WICPixelFormat32bppPRGBA,
 			WICBitmapCacheOnLoad,
 			&_bitmap);
-		
+
 		auto result = renderer.d2dFactory()->CreateWicBitmapRenderTarget(
 			_bitmap,
 			D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)),

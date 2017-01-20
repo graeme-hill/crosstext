@@ -1,4 +1,5 @@
 #include "CrossText.hpp"
+#include <iostream>
 
 namespace ct
 {
@@ -15,7 +16,10 @@ namespace ct
 	TextManager::TextManager(TRenderOptions renderOptions) :
 		_renderer(TRenderer(renderOptions))
 	{
-		_textures.push_back(Texture(TImageData(_renderer, renderOptions.textureSize())));
+		for (unsigned int i = 0; i < renderOptions.textureCount(); i++)
+		{
+			_textures.push_back(Texture(TImageData(_renderer, renderOptions.textureSize())));
+		}
 	}
 
 	Placement TextManager::findPlacement(Size size)
@@ -29,7 +33,7 @@ namespace ct
 				return Placement(true, _textures[i], result.slot());
 			}
 		}
-		
+
 		// there is nowhere that can fit a text block of this size :(
 		return Placement(false, _textures[0], Slot());
 	}
@@ -40,12 +44,20 @@ namespace ct
 		texture.organizer().releaseSlot(slot.index());
 	}
 
-	TextBlock::TextBlock(TextManager &manager, Text text, FontOptions font) :
-		_manager(manager), _texture(nullptr)
+	TextBlock::TextBlock(TextManager &manager, std::wstring text, FontOptions font) :
+		TextBlock(manager, text, font, std::vector<FontRange>())
+	{ }
+
+	TextBlock::TextBlock(
+		TextManager &manager, std::wstring text, FontOptions font, std::vector<FontRange> fontRanges) :
+		_manager(manager), _texture(nullptr), _fontRanges(fontRanges)
 	{
-		TBuilder builder(manager.renderer(), text, font);
+		TBuilder builder(manager.renderer(), text, font, fontRanges);
 		auto size = builder.size();
+		Timer t;
 		auto placement = manager.findPlacement(size);
+		auto x = t.millis();
+		std::cout << x << std::endl;
 		_slot = placement.slot();
 		builder.render(placement.texture().imageData(), _slot.rect());
 		_texture = &placement.texture();
@@ -54,9 +66,10 @@ namespace ct
 	TextBlock::TextBlock(TextBlock &&other) :
 		_manager(other._manager),
 		_texture(other._texture),
-		_slot(other._slot)
+		_slot(other._slot),
+		_fontRanges(other._fontRanges)
 	{
-		_texture = nullptr;
+		other._texture = nullptr;
 	}
 
 	TextBlock::~TextBlock()
@@ -79,10 +92,6 @@ namespace ct
 	Placement::Placement(bool isFound, Texture &texture, Slot slot) :
 		_texture(texture), _slot(slot), _isFound(isFound)
 	{ }
-
-	//Font::Font(TextManager &manager, FontOptions options) :
-	//	_systemFont(manager.renderer(), options)
-	//{ }
 
 	RectangleOrganizer::RectangleOrganizer(Size size) :
 		_size(size), _nextIndex(0)
@@ -215,45 +224,4 @@ namespace ct
 
 		return result;
 	}
-}
-
-#include <Windows.h>
-
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
-{
-	ct::DirectWriteRenderOptions options(ct::Size(1024, 1024));
-	ct::TextManager manager(options);
-
-	ct::FontOptions fontOptions1(
-		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
-		20.0f,
-		L"en-US",
-		ct::Color(0xffffffff));
-
-	ct::FontOptions fontOptions2(
-		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
-		60.0f,
-		L"en-US",
-		ct::Color(0xffffffff));
-
-	ct::FontOptions fontOptions3(
-		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
-		14.0f,
-		L"en-US",
-		ct::Color(0xffff00ff));
-
-	ct::TextBlock multiRun1(manager, ct::Text(std::wstring(L"Graeme")), fontOptions1);
-
-	multiRun1.texture()->imageData().savePng(L"C:\\temp\\test3.png");
-
-	return 0;
 }

@@ -10,6 +10,7 @@
 #include <dwrite.h>
 
 #define DEFAULT_TEXTURE_SIZE 4096
+#define DEFAULT_TEXTURE_COUNT 1
 
 namespace ct
 {
@@ -17,11 +18,13 @@ namespace ct
 	{
 	public:
 		DirectWriteRenderOptions();
-		DirectWriteRenderOptions(Size textureSize);
+		DirectWriteRenderOptions(Size textureSize, unsigned int textureCount);
 		Size textureSize() const { return _textureSize; }
+		unsigned int textureCount() const { return _textureCount; }
 
 	private:
 		Size _textureSize;
+		unsigned int _textureCount;
 	};
 
 	class DirectWriteRenderer
@@ -68,26 +71,14 @@ namespace ct
 		ID2D1Bitmap *_transparentBmp;
 	};
 
-	//class DirectWriteFont
-	//{
-	//public:
-	//	DirectWriteFont(DirectWriteRenderer &renderer, FontOptions fontOptions);
-	//	DirectWriteFont(const DirectWriteFont &) = delete;
-	//	DirectWriteFont(DirectWriteFont &&) = delete;
-	//	~DirectWriteFont();
-	//	IDWriteTextFormat *format() { return _format; }
-
-	//private:
-	//	IDWriteTextFormat *_format;
-	//};
-
 	class DirectWriteBuilder
 	{
 	public:
 		DirectWriteBuilder(
 			DirectWriteRenderer &renderer,
-			Text text,
-			FontOptions font);
+			std::wstring text,
+			FontOptions font,
+			std::vector<FontRange> &fontRanges);
 		DirectWriteBuilder(const DirectWriteBuilder &) = delete;
 		DirectWriteBuilder(DirectWriteBuilder &&) = delete;
 		~DirectWriteBuilder();
@@ -98,7 +89,7 @@ namespace ct
 
 	private:
 		DirectWriteRenderer &_renderer;
-		Text _text;
+		std::wstring _text;
 		IDWriteTextLayout *_layout;
 		IDWriteTextFormat *_format;
 		FontOptions _font;
