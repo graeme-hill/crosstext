@@ -371,17 +371,6 @@ namespace ct
 		});
 
 		return !foundOverlap;
-
-		/*for (int i = 0; i < _slots.size(); i++)
-		{
-			auto overlap = checkOverlap(rect, _slots[i].rect());
-			if (overlap)
-			{
-				return false;
-			}
-		}
-
-		return true;*/
 	}
 
 	bool RectangleOrganizer::checkOverlap(Rect a, Rect b)
