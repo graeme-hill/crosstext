@@ -386,21 +386,6 @@ namespace ct
 		return overlapsHorizontally && overlapsVertically;
 	}
 
-	//std::vector<int> RectangleOrganizer::findXOptions(int y)
-	//{
-	//	for (int i = 0; i < _slots.size(); i++)
-	//	{
-	//		auto yOverlap = _slots[i].rect().y() <= y && y <= _slots[i].rect().endY();
-	//		if (yOverlap)
-	//		{
-	//			result.push_back(_slots[i].rect().x());
-	//			result.push_back(_slots[i].rect().endX() + 1);
-	//		}
-	//	}
-
-	//	return result;
-	//}
-
 	void RectangleOrganizer::withXOptions(int y, std::function<bool(int)> callback)
 	{
 		if (callback(0))
