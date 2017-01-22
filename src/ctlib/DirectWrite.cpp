@@ -6,7 +6,7 @@ namespace ct
 		DirectWriteRenderOptions(Size(DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE), DEFAULT_TEXTURE_COUNT)
 	{ }
 
-	DirectWriteRenderOptions::DirectWriteRenderOptions(Size textureSize, unsigned int textureCount) :
+	DirectWriteRenderOptions::DirectWriteRenderOptions(Size textureSize, int textureCount) :
 		_textureSize(textureSize), _textureCount(textureCount)
 	{ }
 
@@ -129,7 +129,7 @@ namespace ct
 		{
 			auto range = fontRange.range();
 			auto b = fontRange.fontOptions();
-			DWRITE_TEXT_RANGE dwriteRange{ range.start(), range.length() };
+			DWRITE_TEXT_RANGE dwriteRange{ (UINT32)range.start(), (UINT32)range.length() };
 
 			if (a.family() != b.family())
 			{
@@ -247,6 +247,11 @@ namespace ct
 
 	void DirectWriteImageData::clearRect(Rect rect)
 	{
+		if (rect.size().width() == 0 && rect.size().height() == 0)
+		{
+			return;
+		}
+
 		IWICBitmapLock *lock;
 		WICRect lockRect = { 0, rect.y(), _size.width(), rect.height() };
 		_bitmap->Lock(&lockRect, WICBitmapLockWrite, &lock);

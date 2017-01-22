@@ -9,7 +9,7 @@
 
 int main()
 {
-	ct::DirectWriteRenderOptions options(ct::Size(1024, 1024), 2);
+	ct::DirectWriteRenderOptions options(ct::Size(4096, 4096), 2);
 	ct::TextManager manager(options);
 
 	ct::FontOptions fontOptions1(
@@ -17,7 +17,7 @@ int main()
 		ct::FontWeight::Normal,
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
-		20.0f,
+		200.0f,
 		L"en-US",
 		ct::Color(0xf00fffff));
 
@@ -35,7 +35,7 @@ int main()
 		ct::FontWeight::Normal,
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
-		14.0f,
+		18.0f,
 		L"en-US",
 		ct::Color(0xffff00ff));
 
@@ -43,13 +43,22 @@ int main()
 
 	std::vector<ct::TextBlock> blocks;
 
-	ct::TextBlock testa(manager, std::wstring(L"Graeme"), fontOptions1, { range });
+	ct::Timer t;
 
-	for (unsigned int i = 0; i < 16; ++i)
+	for (unsigned int i = 0; i < 60; ++i)
 	{
-		ct::TextBlock test(manager, std::wstring(L"Graeme"), fontOptions1, { range });
+		ct::TextBlock test(manager, std::wstring(L"Hello World"), fontOptions1);
 		blocks.push_back(std::move(test));
 	}
+
+	for (unsigned int i = 0; i < 1000; ++i)
+	{
+		ct::TextBlock test(manager, std::wstring(L"Hello World"), fontOptions3);
+		blocks.push_back(std::move(test));
+	}
+
+	auto millis = t.millis();
+	std::cout << millis << std::endl;
 
 	std::wstring fileNameWithoutSuffix(L"C:\\temp\\_");
 	for (auto &texture : manager.textures())

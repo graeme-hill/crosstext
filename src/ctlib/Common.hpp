@@ -40,6 +40,26 @@ namespace ct
 			: _x(x), _y(y), _width(width), _height(height)
 		{ }
 
+		Rect(const Rect &other) :
+			Rect(other._x, other._y, other._width, other._height)
+		{ }
+
+		Rect(Rect &&other) :
+			Rect(other._x, other._y, other._width, other._height)
+		{ }
+
+		Rect &operator=(const Rect &other)
+		{
+			if (this != &other)
+			{
+				_x = other._x;
+				_y = other._y;
+				_width = other._width;
+				_height = other._height;
+			}
+			return *this;
+		}
+
 		int x() const { return _x; }
 		int y() const { return _y; }
 		int width() const { return _width; }
@@ -125,19 +145,19 @@ namespace ct
 	class Range
 	{
 	public:
-		Range(unsigned int start, unsigned int length) :
+		Range(int start, int length) :
 			_start(start), _length(length)
 		{ }
 		Range() :
 			Range(0, 0)
 		{ }
 
-		unsigned int start() const { return _start; }
-		unsigned int length() const { return _length; }
+		int start() const { return _start; }
+		int length() const { return _length; }
 
 	private:
-		unsigned int _start;
-		unsigned int _length;
+		int _start;
+		int _length;
 	};
 
 	class Brush

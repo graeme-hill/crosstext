@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Common.hpp"
+#include <functional>
+#include <unordered_map>
 
 #ifdef OS_WINDOWS
 #include "DirectWrite.hpp"
@@ -15,7 +17,7 @@ namespace ct
 
 #define OPENING_MIN_HEIGHT 1.0f
 #define OPENING_MIN_WIDTH 1.0f
-#define SPACIAL_INDEX_BLOCK_SIZE 64
+#define SPACIAL_INDEX_BLOCK_SIZE 16
 
 namespace ct
 {
@@ -34,9 +36,21 @@ namespace ct
 		Slot() :
 			Slot(Rect(), 0)
 		{ }
+
 		Slot(Rect rect, uint64_t index) :
 			_rect(rect), _index(index)
 		{ }
+
+		Slot &operator=(const Slot &other)
+		{
+			if (this != &other)
+			{
+				_rect = other._rect;
+				_index = other._index;
+			}
+			return *this;
+		}
+
 		Rect rect() { return _rect; }
 		uint64_t index() { return _index; }
 	private:
@@ -64,21 +78,42 @@ namespace ct
 	class SpacialSlotIndex
 	{
 	public:
-		SpacialSlotIndex(Size size, unsigned int blockSize);
+		SpacialSlotIndex(Size size, int blockSize);
 		SpacialSlotIndex(const SpacialSlotIndex &other) = delete;
 		SpacialSlotIndex(SpacialSlotIndex &&other) = delete;
+
 		void add(Slot slot);
+
 		void remove(Slot slot);
 
+		bool withNearBlocks(Rect rect, std::function<bool(std::vector<uint64_t> &)> action);
+
+		bool withNearSlots(Rect rect, std::function<bool(uint64_t)> action);
+
+		bool withSlotsOnYLine(int y, std::function<bool(uint64_t)> action);
+
+		bool withSlotsInBlockRange(
+			int leftColumn,
+			int rightColumn,
+			int topRow,
+			int bottomRow,
+			std::function<bool(uint64_t)> action);
+
+		bool withBlocksInRange(
+			int leftColumn,
+			int rightColumn,
+			int topRow,
+			int bottomRow,
+			std::function<bool(std::vector<uint64_t> &)> action);
+
 	private:
-		unsigned int _blockSize;
-		unsigned int _xBlocks;
-		unsigned int _yBlocks;
+		int _blockSize;
+		int _xBlocks;
+		int _yBlocks;
 		std::vector<std::vector<uint64_t>> _data;
 
-		unsigned int getBlockIndex(unsigned int x, unsigned int y);
-		void removeSlotIndex(std::vector<uint64_t> &indexes, uint64_t slotIndex);
-		static unsigned int calcBlockCount(unsigned int totalSize, unsigned int blockSize);
+		int getBlockIndex(int x, int y);
+		static int calcBlockCount(int totalSize, int blockSize);
 	};
 
 	class RectangleOrganizer
@@ -92,12 +127,19 @@ namespace ct
 
 	private:
 		bool isRectOpen(Rect &rect);
-		std::vector<int> findXOptions(int y);
-		bool checkOverlap(Rect &a, Rect &b);
+		//std::vector<int> findXOptions(int y);
+		void withXOptions(int y, std::function<bool(int)> callback);
+		bool checkOverlap(Rect a, Rect b);
 		SlotSearchResult search(int y, Size size);
 		SlotSearchResult search(Slot &slot, Size size);
+		void addSlot(Slot slot);
+		void removeSlot(uint64_t slotIndex);
+		bool empty();
+		uint64_t nextIndex() { return _nextIndex++; }
 
-		std::vector<Slot> _slots;
+		//std::vector<Slot> _slots;
+		std::unordered_map<uint64_t, Slot> _slotMap;
+		std::vector<uint64_t> _slotIndexes;
 		Size _size;
 		uint64_t _nextIndex;
 		SpacialSlotIndex _spacialIndex;
@@ -118,6 +160,7 @@ namespace ct
 	private:
 		std::vector<Texture> _textures;
 		TRenderer _renderer;
+		int _lastUsed;
 	};
 
 	class TextBlock
