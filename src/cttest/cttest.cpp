@@ -9,37 +9,43 @@
 
 int main()
 {
-	ct::DirectWriteRenderOptions options(ct::Size(4096, 4096), 2);
+	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
 	ct::TextManager manager(options);
 
-	ct::FontOptions fontOptions1(
+	ct::FontOptions fontOptions1
+	{
 		L"Arial",
 		ct::FontWeight::Normal,
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
 		200.0f,
 		L"en-US",
-		ct::Color(0xf00fffff));
+		{ 0xf00fffff }
+	};
 
-	ct::FontOptions fontOptions2(
+	ct::FontOptions fontOptions2
+	{
 		L"Times New Roman",
 		ct::FontWeight::Normal,
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
 		60.0f,
 		L"en-US",
-		ct::Color(0xff00ffff));
+		{ 0xff00ffff }
+	};
 
-	ct::FontOptions fontOptions3(
+	ct::FontOptions fontOptions3
+	{
 		L"Arial",
 		ct::FontWeight::Normal,
 		ct::FontStyle::Normal,
 		ct::FontStretch::Normal,
 		18.0f,
 		L"en-US",
-		ct::Color(0xffff00ff));
+		{ 0xffff00ff }
+	};
 
-	ct::FontRange range(fontOptions2, ct::Range(3, 2));
+	ct::FontRange range{ fontOptions2, { 3, 2 } };
 
 	std::vector<ct::TextBlock> blocks;
 

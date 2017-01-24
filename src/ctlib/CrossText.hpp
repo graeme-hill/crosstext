@@ -21,58 +21,26 @@ namespace ct
 
 namespace ct
 {
-	class TextManager;
-	class TextBlock;
-	class Texture;
-	class Placement;
-	class Font;
-	class SlotSearchResult;
-	class Slot;
-	class RectangleOrganizer;
-
-	class Slot
+	struct Slot
 	{
-	public:
-		Slot() :
-			Slot(Rect(), 0)
-		{ }
-
-		Slot(Rect rect, uint64_t index) :
-			_rect(rect), _index(index)
-		{ }
-
-		Slot &operator=(const Slot &other)
-		{
-			if (this != &other)
-			{
-				_rect = other._rect;
-				_index = other._index;
-			}
-			return *this;
-		}
-
-		Rect rect() { return _rect; }
-		uint64_t index() { return _index; }
-	private:
-		Rect _rect;
-		uint64_t _index;
+		Rect rect;
+		uint64_t index;
 	};
 
-	class SlotSearchResult
+	struct SlotSearchResult
 	{
-	public:
-		static SlotSearchResult notFound();
-		static SlotSearchResult found(Slot slot);
-		bool isFound() { return _isFound; }
-		Slot slot() { return _slot; }
+		bool isFound;
+		Slot slot;
 
-	private:
-		SlotSearchResult(bool found, Slot slot) :
-			_isFound(found), _slot(slot)
-		{ }
+		static inline SlotSearchResult notFound()
+		{
+			return{ false, { 0 } };
+		}
 
-		bool _isFound;
-		Slot _slot;
+		static inline SlotSearchResult found(Slot slot)
+		{
+			return{ true, slot };
+		}
 	};
 
 	class SpacialSlotIndex
@@ -127,7 +95,6 @@ namespace ct
 
 	private:
 		bool isRectOpen(Rect &rect);
-		//std::vector<int> findXOptions(int y);
 		void withXOptions(int y, std::function<bool(int)> callback);
 		bool checkOverlap(Rect a, Rect b);
 		SlotSearchResult search(int y, Size size);
@@ -137,12 +104,42 @@ namespace ct
 		bool empty();
 		uint64_t nextIndex() { return _nextIndex++; }
 
-		//std::vector<Slot> _slots;
 		std::unordered_map<uint64_t, Slot> _slotMap;
 		std::vector<uint64_t> _slotIndexes;
 		Size _size;
 		uint64_t _nextIndex;
 		SpacialSlotIndex _spacialIndex;
+	};
+
+	class Texture
+	{
+	public:
+		Texture(TImageData imageData);
+		Texture(const Texture &) = delete;
+		Texture(Texture &&);
+		TImageData &imageData() { return _imageData; }
+		RectangleOrganizer &organizer() { return _organizer; }
+
+	private:
+		TImageData _imageData;
+		RectangleOrganizer _organizer;
+	};
+	
+	struct Placement
+	{
+		bool isFound;
+		Slot slot;
+		Texture *texture;
+
+		static inline Placement notFound()
+		{
+			return{ false, {0}, nullptr };
+		}
+
+		static inline Placement found(Slot slot_, Texture *texture_)
+		{
+			return{ true, slot_, texture_ };
+		}
 	};
 
 	class TextManager
@@ -173,41 +170,18 @@ namespace ct
 		TextBlock(const TextBlock &) = delete;
 		TextBlock(TextBlock &&);
 		~TextBlock();
-		Texture *texture() { return _texture; }
+		Texture *texture() { return _placement.texture; }
 
 	private:
+		static Placement initPlacement(
+			TextManager &manager,
+			std::wstring &text,
+			FontOptions font,
+			std::vector<FontRange> &fontRanges);
+
 		TextManager &_manager;
-		Texture *_texture;
-		Slot _slot;
+		Placement _placement;
 		std::vector<FontRange> _fontRanges;
-	};
-
-	class Texture
-	{
-	public:
-		Texture(TImageData imageData);
-		Texture(const Texture &) = delete;
-		Texture(Texture &&);
-		TImageData &imageData() { return _imageData; }
-		RectangleOrganizer &organizer() { return _organizer; }
-
-	private:
-		TImageData _imageData;
-		RectangleOrganizer _organizer;
-	};
-
-	class Placement
-	{
-	public:
-		Placement(bool isFound, Texture &texture, Slot slot);
-		Texture &texture() { return _texture; }
-		Slot slot() const { return _slot; }
-		bool isFound() const { return _isFound; }
-
-	private:
-		Texture &_texture;
-		Slot _slot;
-		bool _isFound;
 	};
 
 	class Timer

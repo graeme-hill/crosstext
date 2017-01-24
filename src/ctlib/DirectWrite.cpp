@@ -3,7 +3,7 @@
 namespace ct
 {
 	DirectWriteRenderOptions::DirectWriteRenderOptions() :
-		DirectWriteRenderOptions(Size(DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE), DEFAULT_TEXTURE_COUNT)
+		DirectWriteRenderOptions({ DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE }, DEFAULT_TEXTURE_COUNT)
 	{ }
 
 	DirectWriteRenderOptions::DirectWriteRenderOptions(Size textureSize, int textureCount) :
@@ -107,58 +107,58 @@ namespace ct
 		_font(font)
 	{
 		renderer.dwriteFactory()->CreateTextFormat(
-			font.family().c_str(),
+			font.family.c_str(),
 			nullptr,
-			convertFontWeight(font.weight()),
-			convertFontStyle(font.style()),
-			convertFontStretch(font.stretch()),
-			font.size(),
-			font.locale().c_str(),
+			convertFontWeight(font.weight),
+			convertFontStyle(font.style),
+			convertFontStretch(font.stretch),
+			font.size,
+			font.locale.c_str(),
 			&_format);
 
 		_renderer.dwriteFactory()->CreateTextLayout(
 			_text.c_str(),
 			(UINT32)_text.size(),
 			_format,
-			(float)_renderer.textureSize().width(),
-			(float)_renderer.textureSize().height(),
+			(float)_renderer.textureSize().width,
+			(float)_renderer.textureSize().height,
 			&_layout);
 
 		auto a = font;
 		for (auto &fontRange : fontRanges)
 		{
-			auto range = fontRange.range();
-			auto b = fontRange.fontOptions();
-			DWRITE_TEXT_RANGE dwriteRange{ (UINT32)range.start(), (UINT32)range.length() };
+			auto range = fontRange.range;
+			auto b = fontRange.fontOptions;
+			DWRITE_TEXT_RANGE dwriteRange{ (UINT32)range.start, (UINT32)range.length };
 
-			if (a.family() != b.family())
+			if (a.family != b.family)
 			{
-				_layout->SetFontFamilyName(b.family().c_str(), dwriteRange);
+				_layout->SetFontFamilyName(b.family.c_str(), dwriteRange);
 			}
 
-			if (a.size() != b.size())
+			if (a.size != b.size)
 			{
-				_layout->SetFontSize(b.size(), dwriteRange);
+				_layout->SetFontSize(b.size, dwriteRange);
 			}
 
-			if (a.stretch() != b.stretch())
+			if (a.stretch != b.stretch)
 			{
-				_layout->SetFontStretch(convertFontStretch(b.stretch()), dwriteRange);
+				_layout->SetFontStretch(convertFontStretch(b.stretch), dwriteRange);
 			}
 
-			if (a.style() != b.style())
+			if (a.style != b.style)
 			{
-				_layout->SetFontStyle(convertFontStyle(b.style()), dwriteRange);
+				_layout->SetFontStyle(convertFontStyle(b.style), dwriteRange);
 			}
 
-			if (a.weight() != b.weight())
+			if (a.weight != b.weight)
 			{
-				_layout->SetFontWeight(convertFontWeight(b.weight()), dwriteRange);
+				_layout->SetFontWeight(convertFontWeight(b.weight), dwriteRange);
 			}
 
-			if (a.locale() != b.locale())
+			if (a.locale != b.locale)
 			{
-				_layout->SetLocaleName(b.locale().c_str(), dwriteRange);
+				_layout->SetLocaleName(b.locale.c_str(), dwriteRange);
 			}
 		}
 	}
@@ -176,18 +176,18 @@ namespace ct
 	{
 		DWRITE_TEXT_METRICS metrics;
 		_layout->GetMetrics(&metrics);
-		return Size((int)ceilf(metrics.width), (int)ceilf(metrics.height));
+		return{ (int)ceilf(metrics.width), (int)ceilf(metrics.height) };
 	}
 
 	void DirectWriteBuilder::render(DirectWriteImageData &imageData, Rect rect)
 	{
 		D2D1_POINT_2F origin;
-		origin.x = (float)rect.x();
-		origin.y = (float)rect.y();
+		origin.x = (float)rect.x;
+		origin.y = (float)rect.y;
 
-		ID2D1Brush *transparent = convertBrush(Brush(ct::Color(0x00000000)), imageData.target());
+		ID2D1Brush *transparent = convertBrush({ 0x00000000 }, imageData.target());
 
-		ID2D1Brush *brush = convertBrush(_font.foreground(), imageData.target());
+		ID2D1Brush *brush = convertBrush(_font.foreground, imageData.target());
 		D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;
 
 		imageData.target()->BeginDraw();
@@ -208,8 +208,8 @@ namespace ct
 		_transparentBmp(nullptr)
 	{
 		renderer.wicFactory()->CreateBitmap(
-			(int)renderer.textureSize().width(),
-			(int)renderer.textureSize().height(),
+			(int)renderer.textureSize().width,
+			(int)renderer.textureSize().height,
 			GUID_WICPixelFormat32bppPRGBA,
 			WICBitmapCacheOnLoad,
 			&_bitmap);
@@ -247,22 +247,22 @@ namespace ct
 
 	void DirectWriteImageData::clearRect(Rect rect)
 	{
-		if (rect.size().width() == 0 && rect.size().height() == 0)
+		if (rect.width == 0 && rect.height == 0)
 		{
 			return;
 		}
 
 		IWICBitmapLock *lock;
-		WICRect lockRect = { 0, rect.y(), _size.width(), rect.height() };
+		WICRect lockRect = { 0, rect.y, _size.width, rect.height };
 		_bitmap->Lock(&lockRect, WICBitmapLockWrite, &lock);
 		BYTE *bytes = NULL;
 		UINT bufferSize = 0;
-		auto bytesPerLine = rect.width() * 4;
+		auto bytesPerLine = rect.width * 4;
 		lock->GetDataPointer(&bufferSize, &bytes);
 
-		for (auto i = 0; i < rect.height(); i++)
+		for (auto i = 0; i < rect.height; i++)
 		{
-			BYTE *lineStart = bytes + (((i * _size.width()) + rect.x()) * 4);
+			BYTE *lineStart = bytes + (((i * _size.width) + rect.x) * 4);
 			memset(lineStart, 0, bytesPerLine);
 		}
 
@@ -325,7 +325,7 @@ namespace ct
 	ID2D1Brush *convertBrush(Brush brush, ID2D1RenderTarget *target)
 	{
 		ID2D1SolidColorBrush *out;
-		auto color = convertColor(brush.color());
+		auto color = convertColor(brush.color);
 		target->CreateSolidColorBrush(color, &out);
 		return out;
 	}

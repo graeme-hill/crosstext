@@ -7,102 +7,53 @@
 
 namespace ct
 {
-	class Size
+	struct Size
 	{
-	public:
-		Size(int width, int height) :
-			_width(width), _height(height)
-		{ }
-
-		Size() : Size(0, 0)
-		{ }
-
-		int width() const { return _width; }
-		int height() const { return _height; }
-
-	private:
-		int _width;
-		int _height;
+		int width;
+		int height;
 	};
 
-	class Rect
+	struct Rect
 	{
-	public:
-		Rect() :
-			Rect(0, 0, 0, 0)
-		{ }
+		int x;
+		int y;
+		int width;
+		int height;
 
-		Rect(int x, int y, Size size) :
-			Rect(x, y, size.width(), size.height())
-		{ }
-
-		Rect(int x, int y, int width, int height)
-			: _x(x), _y(y), _width(width), _height(height)
-		{ }
-
-		Rect(const Rect &other) :
-			Rect(other._x, other._y, other._width, other._height)
-		{ }
-
-		Rect(Rect &&other) :
-			Rect(other._x, other._y, other._width, other._height)
-		{ }
-
-		Rect &operator=(const Rect &other)
+		inline int endX()
 		{
-			if (this != &other)
-			{
-				_x = other._x;
-				_y = other._y;
-				_width = other._width;
-				_height = other._height;
-			}
-			return *this;
+			return x + width - 1;
 		}
 
-		int x() const { return _x; }
-		int y() const { return _y; }
-		int width() const { return _width; }
-		int height() const { return _height; }
-		Size size() const { return Size(_width, _height); }
-		int endX() const { return _x + _width - 1; }
-		int endY() const { return _y + _height - 1; }
-
-	private:
-		int _x;
-		int _y;
-		int _width;
-		int _height;
+		inline int endY()
+		{
+			return y + height - 1;
+		}
 	};
 
-	class Color
+	struct Color
 	{
-	public:
-		Color(uint32_t rgba) : _rgba(rgba)
-		{ }
+		uint32_t rgba;
 
 		float redf()
 		{
-			return (_rgba >> 24) / 255.0f;
+			return (rgba >> 24) / 255.0f;
 		}
 
 		float greenf()
 		{
-			return ((_rgba & 0x00ff0000) >> 16) / 255.0f;
+			return ((rgba & 0x00ff0000) >> 16) / 255.0f;
 		}
 
 		float bluef()
 		{
-			return ((_rgba & 0x0000ff00) >> 8) / 255.0f;
+			return ((rgba & 0x0000ff00) >> 8) / 255.0f;
 		}
 
 		float alphaf()
 		{
-			return (_rgba & 0x000000ff) / 255.0f;
+			return (rgba & 0x000000ff) / 255.0f;
 		}
-
-	private:
-		uint32_t _rgba;
 	};
 
 	enum class FontWeight
@@ -142,87 +93,31 @@ namespace ct
 		UltraExpanded
 	};
 
-	class Range
+	struct Range
 	{
-	public:
-		Range(int start, int length) :
-			_start(start), _length(length)
-		{ }
-		Range() :
-			Range(0, 0)
-		{ }
-
-		int start() const { return _start; }
-		int length() const { return _length; }
-
-	private:
-		int _start;
-		int _length;
+		int start;
+		int length;
 	};
 
-	class Brush
+	struct Brush
 	{
-	public:
-		Brush(Color color) : _color(color)
-		{ }
-
-		Color &color() { return _color; }
-
-	private:
-		Color _color;
+		Color color;
 	};
 
-	class FontOptions
+	struct FontOptions
 	{
-	public:
-		FontOptions(
-			std::wstring family,
-			FontWeight weight,
-			FontStyle style,
-			FontStretch stretch,
-			float size,
-			std::wstring locale,
-			Brush foreground)
-			:
-			_family(family),
-			_weight(weight),
-			_style(style),
-			_stretch(stretch),
-			_size(size),
-			_locale(locale),
-			_foreground(foreground)
-		{ }
-
-		std::wstring &family() { return _family; }
-		FontWeight weight() { return _weight; }
-		FontStyle style() { return _style; }
-		FontStretch stretch() { return _stretch; }
-		float size() { return _size; }
-		std::wstring &locale() { return _locale; }
-		Brush foreground() { return _foreground; }
-
-	private:
-		std::wstring _family;
-		FontWeight _weight;
-		FontStyle _style;
-		FontStretch _stretch;
-		float _size;
-		std::wstring _locale;
-		Brush _foreground;
+		std::wstring family;
+		FontWeight weight;
+		FontStyle style;
+		FontStretch stretch;
+		float size;
+		std::wstring locale;
+		Brush foreground;
 	};
 
-	class FontRange
+	struct FontRange
 	{
-	public:
-		FontRange(FontOptions fontOptions, Range range) :
-			_fontOptions(fontOptions), _range(range)
-		{ }
-
-		FontOptions fontOptions() const { return _fontOptions; }
-		Range range() const { return _range; }
-
-	private:
-		FontOptions _fontOptions;
-		Range _range;
+		FontOptions fontOptions;
+		Range range;
 	};
 }
