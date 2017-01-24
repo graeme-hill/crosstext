@@ -85,7 +85,6 @@ namespace ct
 
 		Size size() const;
 		void render(DirectWriteImageData &imageData, Rect rect);
-		void clearRect(DirectWriteImageData &imageData, Rect rect);
 
 	private:
 		DirectWriteRenderer &_renderer;
