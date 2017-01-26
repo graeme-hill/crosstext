@@ -19,6 +19,7 @@ namespace ct
 
 	Placement TextManager::findPlacement(Size size)
 	{
+		//std::cout << "findPlacement size=" << size.width << "," << size.height << std::endl;
 		auto firstResult = _textures[_lastUsed].organizer().tryClaimSlot(size);
 		if (firstResult.isFound)
 		{
@@ -72,10 +73,14 @@ namespace ct
 		FontOptions font, 
 		std::vector<FontRange> &fontRanges)
 	{
+		//std::cout << "initPlacement" << std::endl;
 		TBuilder builder(manager.renderer(), text, font, fontRanges);
 		auto size = builder.size();
 		auto placement = manager.findPlacement(size);
-		builder.render(placement.texture->imageData(), placement.slot.rect);
+		if (placement.isFound)
+		{
+			builder.render(placement.texture->imageData(), placement.slot.rect);
+		}
 		return placement;
 	}
 
@@ -85,6 +90,11 @@ namespace ct
 		_fontRanges(other._fontRanges)
 	{
 		other._placement = Placement::notFound();
+	}
+
+	TextBlock &TextBlock::operator=(const TextBlock &other)
+	{
+		return *this;
 	}
 
 	TextBlock::~TextBlock()
@@ -144,26 +154,36 @@ namespace ct
 
 	bool SpacialSlotIndex::withNearSlots(Rect rect, std::function<bool(uint64_t)> action)
 	{
-		std::unordered_map<uint64_t, bool> used;
-		return withNearBlocks(rect, [&used, &action](std::vector<uint64_t> &slots) {
+		std::unordered_map<uint64_t, bool> usedSlots;
+		//std::cout << "withNearSlots rect=" << rect.x << "," << rect.y << "," << rect.width << "," << rect.height << std::endl;
+		auto result = withNearBlocks(rect, [&usedSlots, &action](std::vector<uint64_t> &slots) {
 			for (auto slotIndex : slots)
 			{
-				if (used.find(slotIndex) == used.end())
+				//std::cout << "withNewBlocks_lambda slotIndex=" << slotIndex;
+				if (usedSlots.find(slotIndex) == usedSlots.end())
 				{
-					used[slotIndex] = true;
+					//std::cout << " unused" << std::endl;
+					usedSlots[slotIndex] = true;
 					if (action(slotIndex))
 					{
+						//std::cout << "action(slotIndex)=true" << std::endl;
 						return true;
 					}
+				}
+				else
+				{
+					//std::cout << " USED" << std::endl;
 				}
 			}
 
 			return false;
 		});
+		return result;
 	}
 
 	bool SpacialSlotIndex::withSlotsOnYLine(int y, std::function<bool(uint64_t)> action)
 	{
+		//std::cout << "withSlotsOnYLine y=" << y << std::endl;
 		return withNearSlots({ 0, y, _blockSize * _xBlocks, 1 }, action);
 	}
 
@@ -204,6 +224,10 @@ namespace ct
 			for (int row = topRow; row <= bottomRow; row++)
 			{
 				auto index = row * _xBlocks + col;
+				if (index >= _data.size())
+				{
+					std::cout << "asdf\n";
+				}
 				if (action(_data[index]))
 				{
 					return true;
@@ -230,30 +254,134 @@ namespace ct
 	}
 
 	/**************************************************************************
+	 * YCache
+	 *************************************************************************/
+
+	YCache::YCache(int height) :
+		_yCounts(height, 0)
+	{
+		// Give y=0 value a head start because it's the first place to check
+		// and we never want its count to reach zero.
+		increment(0);
+	}
+
+	YCache::YCache(YCache &&other) :
+		_yCounts(std::move(other._yCounts)),
+		_yCountPriority(std::move(other._yCountPriority))
+	{ }
+
+	void YCache::increment(int y)
+	{
+		if (y >= _yCounts.size())
+		{
+			return;
+		}
+
+		auto countRef = &_yCounts[y];
+		auto count = *countRef;
+		if (count == 0)
+		{
+			// Add as top priority
+			_yCountPriority.push_back({ y, countRef });
+		}
+		else
+		{
+			for (int i = 0; i < _yCountPriority.size(); i++)
+			{
+				auto yCount = _yCountPriority[i];
+				if (yCount.y == y)
+				{
+					// Promote to top priority
+					_yCountPriority.erase(_yCountPriority.begin() + i);
+					_yCountPriority.push_back(yCount);
+					break;
+				}
+			}
+		}
+		(*countRef)++;
+	}
+
+	void YCache::decrement(int y)
+	{
+		if (y >= _yCounts.size())
+		{
+			return;
+		}
+
+		auto countRef = &_yCounts[y];
+		auto count = *countRef;
+		
+		for (int i = 0; i < _yCountPriority.size(); i++)
+		{
+			auto yCount = _yCountPriority[i];
+			if (yCount.y == y)
+			{
+				if (count <= 1)
+				{
+					// There's nothing here anymore so remove it
+					_yCountPriority.erase(_yCountPriority.begin() + i);
+				}
+				else
+				{
+					// There's still stuff here to promote to top priority
+					_yCountPriority.erase(_yCountPriority.begin() + i);
+					_yCountPriority.push_back(yCount);
+				}
+				break;
+			}
+		}
+
+		(*countRef)--;
+	}
+
+	void YCache::withYValuesInPriorityOrder(std::function<bool(int y)> callback)
+	{
+		for (auto i = _yCountPriority.size(); i-- > 0;)
+		{
+			if (callback(_yCountPriority[i].y))
+			{
+				break;
+			}
+		}
+	}
+
+	/**************************************************************************
 	 * RectangleOrganizer
 	 *************************************************************************/
 
 	RectangleOrganizer::RectangleOrganizer(Size size) :
-		_size(size), _nextIndex(0), _spacialIndex(size, SPACIAL_INDEX_BLOCK_SIZE)
+		_size(size),
+		_nextIndex(0),
+		_spacialIndex(size, SPACIAL_INDEX_BLOCK_SIZE),
+		_yCache(size.height)
 	{ }
 
 	RectangleOrganizer::RectangleOrganizer(RectangleOrganizer &&other) :
 		_size(other._size),
 		_nextIndex(other._nextIndex),
 		_slotMap(std::move(other._slotMap)),
-		_spacialIndex(other._size, SPACIAL_INDEX_BLOCK_SIZE)
+		_spacialIndex(other._size, SPACIAL_INDEX_BLOCK_SIZE),
+		_yCache(std::move(other._yCache))
 	{ }
 
 	void RectangleOrganizer::addSlot(Slot slot)
 	{
+		//std::cout << "addSlot slotIndex=" << slot.index
+		//	<< " rect=" << slot.rect.x << "," << slot.rect.y << "," << slot.rect.width << "," << slot.rect.height
+		//	<< std::endl;
 		_slotMap[slot.index] = slot;
 		_slotIndexes.push_back(slot.index);
 		_spacialIndex.add(slot);
+		_yCache.increment(slot.rect.endY() + 1);
+		_yCache.increment(slot.rect.y);
 	}
 
 	void RectangleOrganizer::removeSlot(uint64_t slotIndex)
 	{
+		//std::cout << "removeSlot slotIndex=" << slotIndex << std::endl;
 		auto slot = _slotMap[slotIndex];
+		_yCache.decrement(slot.rect.endY() + 1);
+		_yCache.decrement(slot.rect.y);
 		_spacialIndex.remove(slot);
 		_slotIndexes.erase(
 			std::remove(_slotIndexes.begin(), _slotIndexes.end(), slotIndex),
@@ -268,61 +396,61 @@ namespace ct
 
 	SlotSearchResult RectangleOrganizer::tryClaimSlot(Size size)
 	{
-
+		//std::cout << "tryClaimSlot size=" << size.width << "," << size.height << std::endl;
 		// if it couldn't possibly fit then give up right away
 		if (size.width > _size.width || size.height > _size.height)
 		{
+			//std::cout << "cannot fit!" << std::endl;
 			return SlotSearchResult::notFound();
 		}
 
 		// if the whole thing is empty then just put at 0,0
 		if (empty())
 		{
+			//std::cout << "texture empty so use 0,0" << std::endl;;
 			Slot slot{ { 0, 0, size.width, size.height }, _nextIndex++ };
 			addSlot(slot);
 			return SlotSearchResult::found(slot);
 		}
 
-		// try putting adjacent to existing slots
-		for (auto i = _slotIndexes.size(); i-- > 0;)
+		// try every usable y value in priority order
+		auto result = SlotSearchResult::notFound();
+		auto resultRef = &result;
+		_yCache.withYValuesInPriorityOrder([this, size, resultRef](int y)
 		{
-			auto slot = _slotMap[_slotIndexes[i]];
-			auto slotResult = search(slot, size);
-			if (slotResult.isFound)
+			//std::cout << "withYValuesInPriorityOrder_lambda y=" << y << std::endl;
+			auto searchResult = search(y, size);
+			if (searchResult.isFound)
 			{
-				addSlot(slotResult.slot);
-				return slotResult;
+				//std::cout << "found" << std::endl;
+				addSlot(searchResult.slot);
+				*resultRef = searchResult;
+				return true;
 			}
-		}
+			return false;
+		});
 
-		return SlotSearchResult::notFound();
+		return result;
 	}
 
 	SlotSearchResult RectangleOrganizer::search(int y, Size size)
 	{
+		//std::cout << "search y=" << y << " size=" << size.width << "," << size.height << std::endl;
 		auto result = SlotSearchResult::notFound();
 		auto pResult = &result;
-		withXOptions(y, [this, y, size, pResult](int x) -> bool {
+		withXOptions(y, [this, y, size, pResult](int x) -> bool
+		{
+			//std::cout << "withXOptions_lambda x=" << x << std::endl;
 			Rect rect{ x, y, size.width, size.height };
 			if (isRectOpen(rect))
 			{
+				//std::cout << "isRectOpen()=true" << std::endl;
 				*pResult = SlotSearchResult::found({ rect, _nextIndex++ });
 				return true;
 			}
 			return false;
 		});
 		return result;
-	}
-
-	SlotSearchResult RectangleOrganizer::search(Slot &slot, Size size)
-	{
-		auto topResult = search(slot.rect.y, size);
-		if (topResult.isFound)
-		{
-			return topResult;
-		}
-		auto bottomResult = search(slot.rect.y + slot.rect.height, size);
-		return bottomResult;
 	}
 
 	bool RectangleOrganizer::releaseSlot(uint64_t index)
@@ -338,21 +466,35 @@ namespace ct
 
 	bool RectangleOrganizer::isRectOpen(Rect &rect)
 	{
+		//std::cout << "isRectOpen rect=" << rect.x << "," << rect.y << "," << rect.width << "," << rect.height;
+
 		// if the rest starts in negative space then it is not open
 		if (rect.x < 0 || rect.y < 0)
 		{
+			//std::cout << " FALSE (negative)" << std::endl;
 			return false;
 		}
 
 		// if the rect would go off the edge of the texture space then it is not open
 		if (rect.endX() >= _size.width || rect.endY() >= _size.height)
 		{
+			//std::cout << " FALSE (off edge)" << std::endl;
 			return false;
 		}
 
+		//std::cout << " checking..." << std::endl;
+
 		// if the rect overlaps with any existing slot then it is not open
-		auto foundOverlap = _spacialIndex.withNearSlots(rect, [this, rect](uint64_t slotIndex) -> bool {
-			return checkOverlap(rect, _slotMap[slotIndex].rect);
+		bool foundOverlap = false;
+		bool *foundOverlapRef = &foundOverlap;
+		_spacialIndex.withNearSlots(rect, [this, rect, foundOverlapRef](uint64_t slotIndex) -> bool {
+			//std::cout << "withNearSlots_lambda slotIndex=" << slotIndex << std::endl;
+			if (checkOverlap(rect, _slotMap[slotIndex].rect))
+			{
+				*foundOverlapRef = true;
+				return true;
+			}
+			return false;
 		});
 
 		return !foundOverlap;
@@ -360,6 +502,8 @@ namespace ct
 
 	bool RectangleOrganizer::checkOverlap(Rect a, Rect b)
 	{
+		//std::cout << "checkOverlap a=" << a.x << "," << a.y << "," << a.width << "," << a.height
+		//	<< " b=" << b.x << "," << b.y << "," << b.width << "," << b.height << " ";
 		auto aStartsAfterBHorizontally = b.endX() < a.x;
 		auto bStartsAfterAHorizontally = a.endX() < b.x;
 		auto aStartsAfterBVertically = b.endY() < a.y;
@@ -368,29 +512,49 @@ namespace ct
 		auto overlapsHorizontally = !aStartsAfterBHorizontally && !bStartsAfterAHorizontally;
 		auto overlapsVertically = !aStartsAfterBVertically && !bStartsAfterAVertically;
 
-		return overlapsHorizontally && overlapsVertically;
+		auto result = overlapsHorizontally && overlapsVertically;
+
+		//if (result)
+			//std::cout << " OVERLAP" << std::endl;
+		//else
+			//std::cout << " OPEN" << std::endl;
+
+		return result;
 	}
 
 	void RectangleOrganizer::withXOptions(int y, std::function<bool(int)> callback)
 	{
+		//std::cout << "withXOptions y=" << y << std::endl;
 		if (callback(0))
 		{
+			//std::cout << "0 succeeded" << std::endl;
 			return;
 		}
 
-		_spacialIndex.withSlotsOnYLine(y, [this, callback](uint64_t slotIndex) -> bool {
+		_spacialIndex.withSlotsOnYLine(y, [this, callback](uint64_t slotIndex) -> bool
+		{
 			auto slot = _slotMap[slotIndex];
+			//std::cout << "withSlotsOnYLine_lambda slotIndex=" << slotIndex
+			//	<< " rect=" << slot.rect.x << "," << slot.rect.y << "," << slot.rect.width << "," << slot.rect.height
+			//	<< std::endl;
 			if (slot.rect.x > 0 && callback(slot.rect.x))
 			{
+				//std::cout << slot.rect.x << " succeedded" << std::endl;
+				//_usedXOptions[slot.rect.x] = true;
 				return true;
 			}
 
-			if (callback(slot.rect.endX() + 1))
+			auto endX = slot.rect.endX() + 1;
+			if (callback(endX))
 			{
+				//std::cout << endX << " succeeded" << std::endl;
+				//_usedXOptions[endX] = true;
 				return true;
 			}
 
 			return false;
 		});
+
+		_usedXOptions.clear();
 	}
 }

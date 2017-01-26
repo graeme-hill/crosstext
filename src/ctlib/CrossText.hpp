@@ -43,6 +43,12 @@ namespace ct
 		}
 	};
 
+	struct YCount
+	{
+		int y;
+		int *count;
+	};
+
 	class SpacialSlotIndex
 	{
 	public:
@@ -84,6 +90,21 @@ namespace ct
 		static int calcBlockCount(int totalSize, int blockSize);
 	};
 
+	class YCache
+	{
+	public:
+		YCache(int height);
+		YCache(const YCache &other) = delete;
+		YCache(YCache &&other);
+		void increment(int y);
+		void decrement(int y);
+		void withYValuesInPriorityOrder(std::function<bool(int y)> callback);
+
+	private:
+		std::vector<int> _yCounts;
+		std::vector<YCount> _yCountPriority;
+	};
+
 	class RectangleOrganizer
 	{
 	public:
@@ -98,17 +119,18 @@ namespace ct
 		void withXOptions(int y, std::function<bool(int)> callback);
 		bool checkOverlap(Rect a, Rect b);
 		SlotSearchResult search(int y, Size size);
-		SlotSearchResult search(Slot &slot, Size size);
 		void addSlot(Slot slot);
 		void removeSlot(uint64_t slotIndex);
 		bool empty();
 		uint64_t nextIndex() { return _nextIndex++; }
 
+		YCache _yCache;
 		std::unordered_map<uint64_t, Slot> _slotMap;
 		std::vector<uint64_t> _slotIndexes;
 		Size _size;
 		uint64_t _nextIndex;
 		SpacialSlotIndex _spacialIndex;
+		std::unordered_map<int, bool> _usedXOptions;
 	};
 
 	class Texture
@@ -169,6 +191,7 @@ namespace ct
 
 		TextBlock(const TextBlock &) = delete;
 		TextBlock(TextBlock &&);
+		TextBlock &operator=(const TextBlock &other);
 		~TextBlock();
 		Texture *texture() { return _placement.texture; }
 

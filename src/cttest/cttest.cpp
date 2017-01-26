@@ -7,7 +7,7 @@
 #include "../ctlib/DirectWrite.hpp"
 #include <Windows.h>
 
-int main()
+int test1()
 {
 	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
 	ct::TextManager manager(options);
@@ -57,11 +57,11 @@ int main()
 		blocks.push_back(std::move(test));
 	}
 
-	for (unsigned int i = 0; i < 1000; ++i)
-	{
-		ct::TextBlock test(manager, std::wstring(L"Hello World"), fontOptions3);
-		blocks.push_back(std::move(test));
-	}
+	//for (unsigned int i = 0; i < 1000; ++i)
+	//{
+	//	ct::TextBlock test(manager, std::wstring(L"Hello World"), fontOptions3);
+	//	blocks.push_back(std::move(test));
+	//}
 
 	auto millis = t.millis();
 	std::cout << millis << std::endl;
@@ -76,3 +76,310 @@ int main()
 	return 0;
 }
 
+int test2()
+{
+	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
+	ct::TextManager manager(options);
+
+	std::wstring letters(L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+	std::vector<ct::FontOptions> fonts;
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		60.0f,
+		L"en-US",
+		{ 0x000fffff }
+	});
+
+	fonts.push_back(
+	{
+		L"Times New Roman",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		40.0f,
+		L"en-US",
+		{ 0xff99ffff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		18.0f,
+		L"en-US",
+		{ 0xff0099ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		20.0f,
+		L"en-US",
+		{ 0x99ff00ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		22.0f,
+		L"en-US",
+		{ 0xff9900ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		18.0f,
+		L"en-US",
+		{ 0xff0099ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		20.0f,
+		L"en-US",
+		{ 0x99ff00ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		22.0f,
+		L"en-US",
+		{ 0xff9900ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		18.0f,
+		L"en-US",
+		{ 0xff0099ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		20.0f,
+		L"en-US",
+		{ 0x99ff00ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		22.0f,
+		L"en-US",
+		{ 0xff9900ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		18.0f,
+		L"en-US",
+		{ 0xff0099ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		20.0f,
+		L"en-US",
+		{ 0x99ff00ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		22.0f,
+		L"en-US",
+		{ 0xff9900ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		18.0f,
+		L"en-US",
+		{ 0xff0099ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		20.0f,
+		L"en-US",
+		{ 0x99ff00ff }
+	});
+
+	fonts.push_back(
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		22.0f,
+		L"en-US",
+		{ 0xff9900ff }
+	});
+
+	std::vector<ct::TextBlock> blocks;
+
+	double min = 1000000000000000000.0f;
+	double max = 0.0f;
+	double total = 0.0f;
+	int count = 0;
+
+	for (auto i = 0; i < 1200; i++)
+	{
+		count++;
+		auto fontIndex = rand() % fonts.size();
+		auto font = fonts[fontIndex];
+
+		auto textLength = 3 + (rand() % 50);
+		std::wstring text(L"");
+		for (auto i = 0; i < textLength; i++)
+		{
+			auto charIndex = rand() % letters.size();
+			text += letters[charIndex];
+		}
+
+		ct::Timer t;
+		ct::TextBlock block(manager, text, font);
+		auto millis = t.millis();
+		if (millis < min) { min = millis; }
+		if (millis > max) { max = millis; }
+		total += millis;
+		blocks.push_back(std::move(block));
+		//std::cout << millis << std::endl;
+	}
+
+	for (auto i = 0; i < 50000; i++)
+	{
+		count++;
+		auto random = rand() % 2;
+		if (random == 0)
+		{
+			auto fontIndex = rand() % fonts.size();
+			auto font = fonts[fontIndex];
+
+			auto textLength = 3 + (rand() % 50);
+			std::wstring text(L"");
+			for (auto i = 0; i < textLength; i++)
+			{
+				auto charIndex = rand() % letters.size();
+				text += letters[charIndex];
+			}
+
+			ct::Timer t;
+			ct::TextBlock block(manager, text, font);
+			auto millis = t.millis();
+			if (millis < min) { min = millis; }
+			if (millis > max) { max = millis; }
+			total += millis;
+			blocks.push_back(std::move(block));
+			//std::cout << millis << std::endl;
+		}
+		else
+		{
+			auto randomIndex = rand() % blocks.size();
+			ct::Timer t;
+			blocks.erase(blocks.begin() + randomIndex);
+			auto millis = t.millis();
+			if (millis < min) { min = millis; }
+			if (millis > max) { max = millis; }
+			total += millis;
+		}
+	}
+
+	for (auto i = 0; i < 1200; i++)
+	{
+		count++;
+		auto fontIndex = rand() % fonts.size();
+		auto font = fonts[fontIndex];
+
+		auto textLength = 3 + (rand() % 50);
+		std::wstring text(L"");
+		for (auto i = 0; i < textLength; i++)
+		{
+			auto charIndex = rand() % letters.size();
+			text += letters[charIndex];
+		}
+
+		ct::Timer t;
+		ct::TextBlock block(manager, text, font);
+		auto millis = t.millis();
+		if (millis < min) { min = millis; }
+		if (millis > max) { max = millis; }
+		total += millis;
+		blocks.push_back(std::move(block));
+		//std::cout << millis << std::endl;
+	}
+
+	double avg = total / static_cast<double>(count);
+	std::cout << "size=" << blocks.size() << " min=" << min << " max=" << max << " total=" << total << " avg=" << avg << std::endl;
+
+	std::cout << "---" << std::endl;
+
+	std::wstring fileNameWithoutSuffix(L"C:\\temp\\_");
+	for (auto &texture : manager.textures())
+	{
+		texture.imageData().savePng((fileNameWithoutSuffix + std::wstring(L".png")).c_str());
+		fileNameWithoutSuffix += L"_";
+	}
+
+	return 0;
+}
+
+int main()
+{
+	test2();
+}
