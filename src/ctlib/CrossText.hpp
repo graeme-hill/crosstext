@@ -17,7 +17,8 @@ namespace ct
 
 #define OPENING_MIN_HEIGHT 1.0f
 #define OPENING_MIN_WIDTH 1.0f
-#define SPACIAL_INDEX_BLOCK_SIZE 16
+#define SPACIAL_INDEX_BLOCK_WIDTH 128
+#define SPACIAL_INDED_BLOCK_HEIGHT 16
 
 namespace ct
 {
@@ -49,12 +50,12 @@ namespace ct
 		int *count;
 	};
 
-	class SpacialSlotIndex
+	class SpacialIndex
 	{
 	public:
-		SpacialSlotIndex(Size size, int blockSize);
-		SpacialSlotIndex(const SpacialSlotIndex &other) = delete;
-		SpacialSlotIndex(SpacialSlotIndex &&other);
+		SpacialIndex(Size size, Size blockSize);
+		SpacialIndex(const SpacialIndex &other) = delete;
+		SpacialIndex(SpacialIndex &&other);
 
 		void add(Slot slot);
 
@@ -81,7 +82,7 @@ namespace ct
 			std::function<bool(std::vector<uint64_t> &)> action);
 
 	private:
-		int _blockSize;
+		Size _blockSize;
 		int _xBlocks;
 		int _yBlocks;
 		std::vector<std::vector<uint64_t>> _data;
@@ -129,7 +130,7 @@ namespace ct
 		std::vector<uint64_t> _slotIndexes;
 		Size _size;
 		uint64_t _nextIndex;
-		SpacialSlotIndex _spacialIndex;
+		SpacialIndex _spacialIndex;
 		std::unordered_map<int, bool> _usedXOptions;
 		bool _moved;
 	};

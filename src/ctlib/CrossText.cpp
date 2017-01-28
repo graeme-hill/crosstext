@@ -127,24 +127,24 @@ namespace ct
 	{ }
 
 	/**************************************************************************
-	 * SpacialSlotIndex
+	 * SpacialIndex
 	 *************************************************************************/
 
-	SpacialSlotIndex::SpacialSlotIndex(Size size, int blockSize) :
+	SpacialIndex::SpacialIndex(Size size, Size blockSize) :
 		_blockSize(blockSize),
-		_xBlocks(calcBlockCount(size.width, blockSize)),
-		_yBlocks(calcBlockCount(size.height, blockSize)),
+		_xBlocks(calcBlockCount(size.width, blockSize.width)),
+		_yBlocks(calcBlockCount(size.height, blockSize.height)),
 		_data(_xBlocks * _yBlocks)
 	{ }
 
-	SpacialSlotIndex::SpacialSlotIndex(SpacialSlotIndex &&other) :
+	SpacialIndex::SpacialIndex(SpacialIndex &&other) :
 		_blockSize(other._blockSize),
 		_xBlocks(other._xBlocks),
 		_yBlocks(other._yBlocks),
 		_data(std::move(other._data))
 	{ }
 
-	void SpacialSlotIndex::add(Slot slot)
+	void SpacialIndex::add(Slot slot)
 	{
 		auto slotIndex = slot.index;
 		withNearBlocks(slot.rect, [slotIndex](std::vector<uint64_t> &slots) -> bool {
@@ -153,7 +153,7 @@ namespace ct
 		});
 	}
 
-	void SpacialSlotIndex::remove(Slot slot)
+	void SpacialIndex::remove(Slot slot)
 	{
 		auto slotIndex = slot.index;
 		withNearBlocks(slot.rect, [this, slotIndex](std::vector<uint64_t> &slots) -> bool {
@@ -162,16 +162,16 @@ namespace ct
 		});
 	}
 
-	bool SpacialSlotIndex::withNearBlocks(Rect rect, std::function<bool(std::vector<uint64_t> &)> action)
+	bool SpacialIndex::withNearBlocks(Rect rect, std::function<bool(std::vector<uint64_t> &)> action)
 	{
-		auto leftColumn = rect.x / _blockSize;
-		auto rightColumn = rect.endX() / _blockSize;
-		auto topRow = rect.y / _blockSize;
-		auto bottomRow = rect.endY() / _blockSize;
+		auto leftColumn = rect.x / _blockSize.width;
+		auto rightColumn = rect.endX() / _blockSize.width;
+		auto topRow = rect.y / _blockSize.height;
+		auto bottomRow = rect.endY() / _blockSize.height;
 		return withBlocksInRange(leftColumn, rightColumn, topRow, bottomRow, action);
 	}
 
-	bool SpacialSlotIndex::withNearSlots(Rect rect, std::function<bool(uint64_t)> action)
+	bool SpacialIndex::withNearSlots(Rect rect, std::function<bool(uint64_t)> action)
 	{
 		std::unordered_map<uint64_t, bool> usedSlots;
 		auto result = withNearBlocks(rect, [&usedSlots, &action](std::vector<uint64_t> &slots) {
@@ -192,13 +192,13 @@ namespace ct
 		return result;
 	}
 
-	bool SpacialSlotIndex::withSlotsOnYLine(int y, std::function<bool(uint64_t)> action)
+	bool SpacialIndex::withSlotsOnYLine(int y, std::function<bool(uint64_t)> action)
 	{
 		//std::cout << "withSlotsOnYLine y=" << y << std::endl;
-		return withNearSlots({ 0, y, _blockSize * _xBlocks, 1 }, action);
+		return withNearSlots({ 0, y, _blockSize.width * _xBlocks, 1 }, action);
 	}
 
-	bool SpacialSlotIndex::withSlotsInBlockRange(
+	bool SpacialIndex::withSlotsInBlockRange(
 		int leftColumn,
 		int rightColumn,
 		int topRow,
@@ -223,7 +223,7 @@ namespace ct
 		return false;
 	}
 
-	bool SpacialSlotIndex::withBlocksInRange(
+	bool SpacialIndex::withBlocksInRange(
 		int leftColumn,
 		int rightColumn,
 		int topRow,
@@ -245,15 +245,15 @@ namespace ct
 		return false;
 	}
 
-	int SpacialSlotIndex::getBlockIndex(int x, int y)
+	int SpacialIndex::getBlockIndex(int x, int y)
 	{
-		auto xBlock = x / _blockSize;
-		auto yBlock = y / _blockSize;
+		auto xBlock = x / _blockSize.width;
+		auto yBlock = y / _blockSize.height;
 
 		return yBlock * _xBlocks + xBlock;
 	}
 
-	int SpacialSlotIndex::calcBlockCount(int totalSize, int blockSize)
+	int SpacialIndex::calcBlockCount(int totalSize, int blockSize)
 	{
 		auto wholeBlocks = totalSize / blockSize;
 		auto bonusBlocks = (totalSize - (wholeBlocks * blockSize)) > 0 ? 1 : 0;
@@ -359,7 +359,7 @@ namespace ct
 	RectangleOrganizer::RectangleOrganizer(Size size) :
 		_size(size),
 		_nextIndex(0),
-		_spacialIndex(size, SPACIAL_INDEX_BLOCK_SIZE),
+		_spacialIndex(size, { SPACIAL_INDEX_BLOCK_WIDTH, SPACIAL_INDED_BLOCK_HEIGHT }),
 		_yCache(size.height),
 		_moved(false)
 	{ }

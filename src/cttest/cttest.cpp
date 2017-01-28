@@ -417,6 +417,65 @@ int test3()
 	return 0;
 }
 
+int test4()
+{
+	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 1);
+	ct::TextManager manager(options);
+
+	ct::FontOptions fontOptions1
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		18.0f,
+		L"en-US",
+		{ 0xffff00ff }
+	};
+
+	std::vector<ct::TextBlock> blocks;
+	
+	double total = 0;
+	double min = 0;
+	double max = 0;
+
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+
+	for (int i = 0; i < 10000; i++)
+	{
+		ct::Timer t;
+		blocks.erase(blocks.begin());
+		blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), fontOptions1));
+		auto millis = t.millis();
+		total += millis;
+		if (millis < min) { min = millis; }
+		if (millis > max) { max = millis; }
+	}
+
+	auto avg = total / 10000.0;
+
+	std::cout << total << "," << avg << "," << min << "," << max << std::endl;
+
+	std::wstring fileNameWithoutSuffix(L"C:\\temp\\_");
+	for (auto &texture : manager.textures())
+	{
+		texture.imageData().savePng((fileNameWithoutSuffix + std::wstring(L".png")).c_str());
+		fileNameWithoutSuffix += L"_";
+	}
+
+	return 0;
+}
+
 int main()
 {
 	test2();
