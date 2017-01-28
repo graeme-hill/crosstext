@@ -1,4 +1,5 @@
 #include "DirectWrite.hpp"
+#include <iostream>
 
 namespace ct
 {
@@ -247,6 +248,10 @@ namespace ct
 
 	void DirectWriteImageData::clearRect(Rect rect)
 	{
+		//std::cout << "clearRect "
+		//	<< "rect=" << rect.x << "," << rect.y << "," << rect.width << "," << rect.height
+		//	<< std::endl;
+
 		if (rect.width == 0 && rect.height == 0)
 		{
 			return;

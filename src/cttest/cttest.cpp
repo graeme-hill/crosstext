@@ -78,7 +78,7 @@ int test1()
 
 int test2()
 {
-	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
+	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 4);
 	ct::TextManager manager(options);
 
 	std::wstring letters(L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -375,6 +375,44 @@ int test2()
 		texture.imageData().savePng((fileNameWithoutSuffix + std::wstring(L".png")).c_str());
 		fileNameWithoutSuffix += L"_";
 	}
+
+	return 0;
+}
+
+int test3()
+{
+	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
+	ct::TextManager manager(options);
+
+	ct::FontOptions fontOptions1
+	{
+		L"Arial",
+		ct::FontWeight::Normal,
+		ct::FontStyle::Normal,
+		ct::FontStretch::Normal,
+		18.0f,
+		L"en-US",
+		{ 0xffff00ff }
+	};
+
+	std::vector<ct::TextBlock> blocks;
+
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
+
+	blocks.erase(blocks.begin());
+
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
+
+	blocks.erase(blocks.begin() + 1);
+
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
+
+	blocks.erase(blocks.begin() + 1);
+
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
 
 	return 0;
 }

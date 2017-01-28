@@ -54,7 +54,7 @@ namespace ct
 	public:
 		SpacialSlotIndex(Size size, int blockSize);
 		SpacialSlotIndex(const SpacialSlotIndex &other) = delete;
-		SpacialSlotIndex(SpacialSlotIndex &&other) = delete;
+		SpacialSlotIndex(SpacialSlotIndex &&other);
 
 		void add(Slot slot);
 
@@ -131,6 +131,7 @@ namespace ct
 		uint64_t _nextIndex;
 		SpacialSlotIndex _spacialIndex;
 		std::unordered_map<int, bool> _usedXOptions;
+		bool _moved;
 	};
 
 	class Texture
@@ -171,7 +172,7 @@ namespace ct
 		TextManager(const TextManager &) = delete;
 		TextManager(TextManager &&) = delete;
 		Placement findPlacement(Size size);
-		void releaseRect(Texture &texture, Slot slot);
+		void releaseRect(Texture *texture, Slot slot);
 
 		TRenderer &renderer() { return _renderer; }
 		std::vector<Texture> &textures() { return _textures; }
@@ -191,7 +192,8 @@ namespace ct
 
 		TextBlock(const TextBlock &) = delete;
 		TextBlock(TextBlock &&);
-		TextBlock &operator=(const TextBlock &other);
+		TextBlock &operator=(const TextBlock &other) = delete;
+		TextBlock &operator=(TextBlock &&other);
 		~TextBlock();
 		Texture *texture() { return _placement.texture; }
 
@@ -201,8 +203,11 @@ namespace ct
 			std::wstring &text,
 			FontOptions font,
 			std::vector<FontRange> &fontRanges);
+		void dispose();
+		inline bool foundPlacement() { return _placement.texture != nullptr; };
+		inline bool dead() { return _manager == nullptr; }
 
-		TextManager &_manager;
+		TextManager *_manager;
 		Placement _placement;
 		std::vector<FontRange> _fontRanges;
 	};

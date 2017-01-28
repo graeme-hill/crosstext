@@ -19,7 +19,6 @@ namespace ct
 
 	Placement TextManager::findPlacement(Size size)
 	{
-		//std::cout << "findPlacement size=" << size.width << "," << size.height << std::endl;
 		auto firstResult = _textures[_lastUsed].organizer().tryClaimSlot(size);
 		if (firstResult.isFound)
 		{
@@ -33,12 +32,12 @@ namespace ct
 				continue;
 			}
 
-			auto result = _textures.at(i).organizer().tryClaimSlot(size);
+			auto result = _textures[i].organizer().tryClaimSlot(size);
 			if (result.isFound)
 			{
 				// found a place for the text block :)
 				_lastUsed = i;
-				return Placement::found(result.slot, &_textures.at(i));
+				return Placement::found(result.slot, &_textures[i]);
 			}
 		}
 
@@ -46,10 +45,10 @@ namespace ct
 		return Placement::notFound();
 	}
 
-	void TextManager::releaseRect(Texture &texture, Slot slot)
+	void TextManager::releaseRect(Texture *texture, Slot slot)
 	{
-		texture.imageData().clearRect(slot.rect);
-		texture.organizer().releaseSlot(slot.index);
+		texture->imageData().clearRect(slot.rect);
+		texture->organizer().releaseSlot(slot.index);
 	}
 
 	/**************************************************************************
@@ -62,7 +61,7 @@ namespace ct
 
 	TextBlock::TextBlock(
 		TextManager &manager, std::wstring text, FontOptions font, std::vector<FontRange> fontRanges) :
-		_manager(manager),
+		_manager(&manager),
 		_fontRanges(fontRanges),
 		_placement(initPlacement(manager, text, font, fontRanges))
 	{ }
@@ -73,7 +72,6 @@ namespace ct
 		FontOptions font, 
 		std::vector<FontRange> &fontRanges)
 	{
-		//std::cout << "initPlacement" << std::endl;
 		TBuilder builder(manager.renderer(), text, font, fontRanges);
 		auto size = builder.size();
 		auto placement = manager.findPlacement(size);
@@ -87,23 +85,37 @@ namespace ct
 	TextBlock::TextBlock(TextBlock &&other) :
 		_manager(other._manager),
 		_placement(other._placement),
-		_fontRanges(other._fontRanges)
+		_fontRanges(std::move(other._fontRanges))
 	{
-		other._placement = Placement::notFound();
+		other._manager = nullptr;
 	}
 
-	TextBlock &TextBlock::operator=(const TextBlock &other)
+	TextBlock &TextBlock::operator=(TextBlock &&other)
 	{
+		dispose();
+		_manager = other._manager;
+		_placement = other._placement;
+		_fontRanges = std::move(other._fontRanges);
+		other._manager = nullptr;
 		return *this;
 	}
 
 	TextBlock::~TextBlock()
 	{
-		if (_placement.texture)
+		dispose();
+	}
+
+	void TextBlock::dispose()
+	{
+		if (!dead() && foundPlacement())
 		{
-			_manager.releaseRect(*_placement.texture, _placement.slot);
+			_manager->releaseRect(_placement.texture, _placement.slot);
 		}
 	}
+
+	/**************************************************************************
+	* Texture
+	*************************************************************************/
 
 	Texture::Texture(TImageData imageData) :
 		_imageData(std::move(imageData)), _organizer(imageData.size())
@@ -123,6 +135,13 @@ namespace ct
 		_xBlocks(calcBlockCount(size.width, blockSize)),
 		_yBlocks(calcBlockCount(size.height, blockSize)),
 		_data(_xBlocks * _yBlocks)
+	{ }
+
+	SpacialSlotIndex::SpacialSlotIndex(SpacialSlotIndex &&other) :
+		_blockSize(other._blockSize),
+		_xBlocks(other._xBlocks),
+		_yBlocks(other._yBlocks),
+		_data(std::move(other._data))
 	{ }
 
 	void SpacialSlotIndex::add(Slot slot)
@@ -155,24 +174,16 @@ namespace ct
 	bool SpacialSlotIndex::withNearSlots(Rect rect, std::function<bool(uint64_t)> action)
 	{
 		std::unordered_map<uint64_t, bool> usedSlots;
-		//std::cout << "withNearSlots rect=" << rect.x << "," << rect.y << "," << rect.width << "," << rect.height << std::endl;
 		auto result = withNearBlocks(rect, [&usedSlots, &action](std::vector<uint64_t> &slots) {
 			for (auto slotIndex : slots)
 			{
-				//std::cout << "withNewBlocks_lambda slotIndex=" << slotIndex;
 				if (usedSlots.find(slotIndex) == usedSlots.end())
 				{
-					//std::cout << " unused" << std::endl;
 					usedSlots[slotIndex] = true;
 					if (action(slotIndex))
 					{
-						//std::cout << "action(slotIndex)=true" << std::endl;
 						return true;
 					}
-				}
-				else
-				{
-					//std::cout << " USED" << std::endl;
 				}
 			}
 
@@ -224,10 +235,6 @@ namespace ct
 			for (int row = topRow; row <= bottomRow; row++)
 			{
 				auto index = row * _xBlocks + col;
-				if (index >= _data.size())
-				{
-					std::cout << "asdf\n";
-				}
 				if (action(_data[index]))
 				{
 					return true;
@@ -353,22 +360,23 @@ namespace ct
 		_size(size),
 		_nextIndex(0),
 		_spacialIndex(size, SPACIAL_INDEX_BLOCK_SIZE),
-		_yCache(size.height)
+		_yCache(size.height),
+		_moved(false)
 	{ }
 
 	RectangleOrganizer::RectangleOrganizer(RectangleOrganizer &&other) :
 		_size(other._size),
 		_nextIndex(other._nextIndex),
 		_slotMap(std::move(other._slotMap)),
-		_spacialIndex(other._size, SPACIAL_INDEX_BLOCK_SIZE),
-		_yCache(std::move(other._yCache))
-	{ }
+		_spacialIndex(std::move(other._spacialIndex)),
+		_yCache(std::move(other._yCache)),
+		_moved(false)
+	{
+		other._moved = true;
+	}
 
 	void RectangleOrganizer::addSlot(Slot slot)
 	{
-		//std::cout << "addSlot slotIndex=" << slot.index
-		//	<< " rect=" << slot.rect.x << "," << slot.rect.y << "," << slot.rect.width << "," << slot.rect.height
-		//	<< std::endl;
 		_slotMap[slot.index] = slot;
 		_slotIndexes.push_back(slot.index);
 		_spacialIndex.add(slot);
@@ -378,7 +386,6 @@ namespace ct
 
 	void RectangleOrganizer::removeSlot(uint64_t slotIndex)
 	{
-		//std::cout << "removeSlot slotIndex=" << slotIndex << std::endl;
 		auto slot = _slotMap[slotIndex];
 		_yCache.decrement(slot.rect.endY() + 1);
 		_yCache.decrement(slot.rect.y);
@@ -396,7 +403,6 @@ namespace ct
 
 	SlotSearchResult RectangleOrganizer::tryClaimSlot(Size size)
 	{
-		//std::cout << "tryClaimSlot size=" << size.width << "," << size.height << std::endl;
 		// if it couldn't possibly fit then give up right away
 		if (size.width > _size.width || size.height > _size.height)
 		{
@@ -407,7 +413,6 @@ namespace ct
 		// if the whole thing is empty then just put at 0,0
 		if (empty())
 		{
-			//std::cout << "texture empty so use 0,0" << std::endl;;
 			Slot slot{ { 0, 0, size.width, size.height }, _nextIndex++ };
 			addSlot(slot);
 			return SlotSearchResult::found(slot);
@@ -418,11 +423,9 @@ namespace ct
 		auto resultRef = &result;
 		_yCache.withYValuesInPriorityOrder([this, size, resultRef](int y)
 		{
-			//std::cout << "withYValuesInPriorityOrder_lambda y=" << y << std::endl;
 			auto searchResult = search(y, size);
 			if (searchResult.isFound)
 			{
-				//std::cout << "found" << std::endl;
 				addSlot(searchResult.slot);
 				*resultRef = searchResult;
 				return true;
@@ -435,16 +438,13 @@ namespace ct
 
 	SlotSearchResult RectangleOrganizer::search(int y, Size size)
 	{
-		//std::cout << "search y=" << y << " size=" << size.width << "," << size.height << std::endl;
 		auto result = SlotSearchResult::notFound();
 		auto pResult = &result;
 		withXOptions(y, [this, y, size, pResult](int x) -> bool
 		{
-			//std::cout << "withXOptions_lambda x=" << x << std::endl;
 			Rect rect{ x, y, size.width, size.height };
 			if (isRectOpen(rect))
 			{
-				//std::cout << "isRectOpen()=true" << std::endl;
 				*pResult = SlotSearchResult::found({ rect, _nextIndex++ });
 				return true;
 			}
@@ -466,29 +466,23 @@ namespace ct
 
 	bool RectangleOrganizer::isRectOpen(Rect &rect)
 	{
-		//std::cout << "isRectOpen rect=" << rect.x << "," << rect.y << "," << rect.width << "," << rect.height;
-
 		// if the rest starts in negative space then it is not open
 		if (rect.x < 0 || rect.y < 0)
 		{
-			//std::cout << " FALSE (negative)" << std::endl;
 			return false;
 		}
 
 		// if the rect would go off the edge of the texture space then it is not open
 		if (rect.endX() >= _size.width || rect.endY() >= _size.height)
 		{
-			//std::cout << " FALSE (off edge)" << std::endl;
 			return false;
 		}
 
-		//std::cout << " checking..." << std::endl;
 
 		// if the rect overlaps with any existing slot then it is not open
 		bool foundOverlap = false;
 		bool *foundOverlapRef = &foundOverlap;
 		_spacialIndex.withNearSlots(rect, [this, rect, foundOverlapRef](uint64_t slotIndex) -> bool {
-			//std::cout << "withNearSlots_lambda slotIndex=" << slotIndex << std::endl;
 			if (checkOverlap(rect, _slotMap[slotIndex].rect))
 			{
 				*foundOverlapRef = true;
@@ -502,8 +496,6 @@ namespace ct
 
 	bool RectangleOrganizer::checkOverlap(Rect a, Rect b)
 	{
-		//std::cout << "checkOverlap a=" << a.x << "," << a.y << "," << a.width << "," << a.height
-		//	<< " b=" << b.x << "," << b.y << "," << b.width << "," << b.height << " ";
 		auto aStartsAfterBHorizontally = b.endX() < a.x;
 		auto bStartsAfterAHorizontally = a.endX() < b.x;
 		auto aStartsAfterBVertically = b.endY() < a.y;
@@ -512,43 +504,27 @@ namespace ct
 		auto overlapsHorizontally = !aStartsAfterBHorizontally && !bStartsAfterAHorizontally;
 		auto overlapsVertically = !aStartsAfterBVertically && !bStartsAfterAVertically;
 
-		auto result = overlapsHorizontally && overlapsVertically;
-
-		//if (result)
-			//std::cout << " OVERLAP" << std::endl;
-		//else
-			//std::cout << " OPEN" << std::endl;
-
-		return result;
+		return overlapsHorizontally && overlapsVertically;
 	}
 
 	void RectangleOrganizer::withXOptions(int y, std::function<bool(int)> callback)
 	{
-		//std::cout << "withXOptions y=" << y << std::endl;
 		if (callback(0))
 		{
-			//std::cout << "0 succeeded" << std::endl;
 			return;
 		}
 
 		_spacialIndex.withSlotsOnYLine(y, [this, callback](uint64_t slotIndex) -> bool
 		{
 			auto slot = _slotMap[slotIndex];
-			//std::cout << "withSlotsOnYLine_lambda slotIndex=" << slotIndex
-			//	<< " rect=" << slot.rect.x << "," << slot.rect.y << "," << slot.rect.width << "," << slot.rect.height
-			//	<< std::endl;
 			if (slot.rect.x > 0 && callback(slot.rect.x))
 			{
-				//std::cout << slot.rect.x << " succeedded" << std::endl;
-				//_usedXOptions[slot.rect.x] = true;
 				return true;
 			}
 
 			auto endX = slot.rect.endX() + 1;
 			if (callback(endX))
 			{
-				//std::cout << endX << " succeeded" << std::endl;
-				//_usedXOptions[endX] = true;
 				return true;
 			}
 
