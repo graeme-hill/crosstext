@@ -9,7 +9,7 @@
 namespace ct
 {
 	typedef DirectWriteRenderOptions TRenderOptions;
-	typedef DirectWriteBuilder TBuilder;
+	typedef DirectWriteBuilder2 TBuilder;
 	typedef DirectWriteRenderer TRenderer;
 	typedef DirectWriteImageData TImageData;
 }

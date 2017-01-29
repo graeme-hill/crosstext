@@ -392,27 +392,19 @@ int test3()
 		ct::FontStretch::Normal,
 		18.0f,
 		L"en-US",
-		{ 0xffff00ff }
+		{ 0xffffffff }
 	};
 
 	std::vector<ct::TextBlock> blocks;
 
 	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
 
-	blocks.erase(blocks.begin());
-
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
-
-	blocks.erase(blocks.begin() + 1);
-
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
-
-	blocks.erase(blocks.begin() + 1);
-
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"), fontOptions1));
+	std::wstring fileNameWithoutSuffix(L"C:\\temp\\_");
+	for (auto &texture : manager.textures())
+	{
+		texture.imageData().savePng((fileNameWithoutSuffix + std::wstring(L".png")).c_str());
+		fileNameWithoutSuffix += L"_";
+	}
 
 	return 0;
 }
@@ -478,5 +470,5 @@ int test4()
 
 int main()
 {
-	test2();
+	test3();
 }

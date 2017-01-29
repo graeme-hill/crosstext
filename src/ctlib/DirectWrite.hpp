@@ -94,6 +94,30 @@ namespace ct
 		FontOptions _font;
 	};
 
+	class DirectWriteBuilder2
+	{
+	public:
+		DirectWriteBuilder2(
+			DirectWriteRenderer &renderer,
+			std::wstring text,
+			FontOptions font,
+			std::vector<FontRange> &fontRanges);
+		DirectWriteBuilder2(const DirectWriteBuilder2 &) = delete;
+		DirectWriteBuilder2(DirectWriteBuilder2 &&) = delete;
+		~DirectWriteBuilder2();
+
+		Size size() const;
+		void render(DirectWriteImageData &imageData, Rect rect);
+
+	private:
+		DirectWriteRenderer &_renderer;
+		std::wstring _text;
+		ID2D1PathGeometry *_geometry;
+		ID2D1GeometrySink *_sink;
+		IDWriteFontFace *_fontFace;
+		FontOptions _font;
+	};
+
 	D2D1_COLOR_F convertColor(Color color);
 	ID2D1Brush *convertBrush(Brush brush, ID2D1RenderTarget *target);
 	DWRITE_FONT_WEIGHT convertFontWeight(FontWeight weight);

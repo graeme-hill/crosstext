@@ -95,6 +95,8 @@ namespace ct
 			_dxgiDevice->Release();
 	}
 
+	// DirectWriteBuilder
+
 	DirectWriteBuilder::DirectWriteBuilder(
 		DirectWriteRenderer &renderer,
 		std::wstring text,
@@ -199,6 +201,114 @@ namespace ct
 		brush->Release();
 		transparent->Release();
 	}
+
+	// DirectWriteBuilder2
+
+	DirectWriteBuilder2::DirectWriteBuilder2(
+		DirectWriteRenderer &renderer,
+		std::wstring text,
+		FontOptions font,
+		std::vector<FontRange> &fontRanges)
+		:
+		_renderer(renderer),
+		_text(text),
+		_geometry(nullptr),
+		_sink(nullptr),
+		_font(font)
+	{
+		auto hr = renderer.d2dFactory()->CreatePathGeometry(&_geometry);
+		hr = _geometry->Open(&_sink);
+		
+		IDWriteFontFile *fontFile;
+		hr = renderer.dwriteFactory()->CreateFontFileReference(L"C:\\Windows\\Fonts\\arial.ttf", NULL, &fontFile);
+		hr = renderer.dwriteFactory()->CreateFontFace(
+			DWRITE_FONT_FACE_TYPE_TRUETYPE,
+			1, // file count
+			&fontFile,
+			0, // face index
+			DWRITE_FONT_SIMULATIONS_NONE,
+			&_fontFace);
+
+		std::vector<UINT> codePoints(text.size(), 0);
+		std::vector<UINT16> glyphIndices(text.size(), 0);
+		for (int i = 0; i < text.size(); i++)
+		{
+			codePoints[i] = text[i];
+		}
+		hr = _fontFace->GetGlyphIndicesW(&codePoints[0], text.size(), &glyphIndices[0]);
+		hr = _fontFace->GetGlyphRunOutline(
+			60.0f, //emSize
+			&glyphIndices[0],
+			NULL, //glyphAdvances
+			NULL, //glyphOffsets
+			text.size(),
+			FALSE, //isSideways
+			FALSE, //isRightToLeft
+			_sink);
+
+		_sink->Close();
+	}
+
+	DirectWriteBuilder2::~DirectWriteBuilder2()
+	{
+		if (_sink)
+			_sink->Release();
+		if (_geometry)
+			_geometry->Release();
+		if (_fontFace)
+			_fontFace->Release();
+	}
+
+	Size DirectWriteBuilder2::size() const
+	{
+		return{ 30, 400 };
+	}
+
+	void DirectWriteBuilder2::render(DirectWriteImageData &imageData, Rect rect)
+	{
+		D2D1_POINT_2F origin;
+		origin.x = (float)rect.x;
+		origin.y = (float)rect.y;
+
+		ID2D1Brush *transparent = convertBrush({ 0x00000000 }, imageData.target());
+
+		ID2D1Brush *brush = convertBrush(_font.foreground, imageData.target());
+		ID2D1Brush *stroke = convertBrush({ 0x000000ff }, imageData.target());
+		D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;
+
+		imageData.target()->BeginDraw();
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Identity());
+		//imageData.target()->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_ALIASED);
+		//imageData.target()->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+		
+		//imageData.target()->DrawGeometry(_geometry, stroke, 1.0f);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(49.0f, 199.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(51.0f, 199.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(49.0f, 201.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(51.0f, 201.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(50.0f, 199.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(50.0f, 201.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(49.0f, 200.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(51.0f, 200.0f));
+		imageData.target()->FillGeometry(_geometry, stroke);
+
+		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(50.0f, 200.0f));
+		imageData.target()->FillGeometry(_geometry, brush);
+
+		imageData.target()->EndDraw();
+		brush->Release();
+		stroke->Release();
+		transparent->Release();
+	}
+
+	// DirectWriteImageData
 
 	DirectWriteImageData::DirectWriteImageData(DirectWriteRenderer &renderer, Size size) :
 		_bitmap(nullptr),
