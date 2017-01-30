@@ -9,7 +9,7 @@
 namespace ct
 {
 	typedef DirectWriteRenderOptions TRenderOptions;
-	typedef DirectWriteBuilder2 TBuilder;
+	typedef DirectWriteBuilder TBuilder;
 	typedef DirectWriteRenderer TRenderer;
 	typedef DirectWriteImageData TImageData;
 }
@@ -187,9 +187,10 @@ namespace ct
 	class TextBlock
 	{
 	public:
-		TextBlock(TextManager &manager, std::wstring text, FontOptions font);
-
-		TextBlock(TextManager &manager, std::wstring text, FontOptions font, std::vector<FontRange> fontRanges);
+		TextBlock(
+			TextManager &manager,
+			std::wstring text,
+			TextOptions options);
 
 		TextBlock(const TextBlock &) = delete;
 		TextBlock(TextBlock &&);
@@ -202,15 +203,14 @@ namespace ct
 		static Placement initPlacement(
 			TextManager &manager,
 			std::wstring &text,
-			FontOptions font,
-			std::vector<FontRange> &fontRanges);
+			TextOptions options);
 		void dispose();
 		inline bool foundPlacement() { return _placement.texture != nullptr; };
 		inline bool dead() { return _manager == nullptr; }
 
 		TextManager *_manager;
 		Placement _placement;
-		std::vector<FontRange> _fontRanges;
+		TextOptions _options;
 	};
 
 	class Timer

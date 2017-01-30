@@ -55,24 +55,18 @@ namespace ct
 	 * TextBlock
 	 *************************************************************************/
 
-	TextBlock::TextBlock(TextManager &manager, std::wstring text, FontOptions font) :
-		TextBlock(manager, text, font, std::vector<FontRange>())
-	{ }
-
-	TextBlock::TextBlock(
-		TextManager &manager, std::wstring text, FontOptions font, std::vector<FontRange> fontRanges) :
+	TextBlock::TextBlock(TextManager &manager, std::wstring text, TextOptions options) :
 		_manager(&manager),
-		_fontRanges(fontRanges),
-		_placement(initPlacement(manager, text, font, fontRanges))
+		_options(options),
+		_placement(initPlacement(manager, text, options))
 	{ }
 
 	Placement TextBlock::initPlacement(
 		TextManager &manager, 
 		std::wstring &text, 
-		FontOptions font, 
-		std::vector<FontRange> &fontRanges)
+		TextOptions options)
 	{
-		TBuilder builder(manager.renderer(), text, font, fontRanges);
+		TBuilder builder(manager.renderer(), text, options);
 		auto size = builder.size();
 		auto placement = manager.findPlacement(size);
 		if (placement.isFound)
@@ -85,7 +79,7 @@ namespace ct
 	TextBlock::TextBlock(TextBlock &&other) :
 		_manager(other._manager),
 		_placement(other._placement),
-		_fontRanges(std::move(other._fontRanges))
+		_options(other._options)
 	{
 		other._manager = nullptr;
 	}
@@ -95,7 +89,7 @@ namespace ct
 		dispose();
 		_manager = other._manager;
 		_placement = other._placement;
-		_fontRanges = std::move(other._fontRanges);
+		_options = other._options;
 		other._manager = nullptr;
 		return *this;
 	}

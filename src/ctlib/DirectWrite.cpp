@@ -100,23 +100,22 @@ namespace ct
 	DirectWriteBuilder::DirectWriteBuilder(
 		DirectWriteRenderer &renderer,
 		std::wstring text,
-		FontOptions font,
-		std::vector<FontRange> &fontRanges)
+		TextOptions options)
 		:
 		_renderer(renderer),
 		_text(text),
 		_layout(nullptr),
 		_format(nullptr),
-		_font(font)
+		_options(options)
 	{
 		renderer.dwriteFactory()->CreateTextFormat(
-			font.family.c_str(),
+			options.baseFont.family.c_str(),
 			nullptr,
-			convertFontWeight(font.weight),
-			convertFontStyle(font.style),
-			convertFontStretch(font.stretch),
-			font.size,
-			font.locale.c_str(),
+			convertFontWeight(options.baseFont.weight),
+			convertFontStyle(options.baseFont.style),
+			convertFontStretch(options.baseFont.stretch),
+			options.baseFont.size,
+			options.baseFont.locale.c_str(),
 			&_format);
 
 		_renderer.dwriteFactory()->CreateTextLayout(
@@ -127,8 +126,8 @@ namespace ct
 			(float)_renderer.textureSize().height,
 			&_layout);
 
-		auto a = font;
-		for (auto &fontRange : fontRanges)
+		auto a = options.baseFont;
+		for (auto &fontRange : options.fontRanges)
 		{
 			auto range = fontRange.range;
 			auto b = fontRange.fontOptions;
@@ -184,128 +183,50 @@ namespace ct
 
 	void DirectWriteBuilder::render(DirectWriteImageData &imageData, Rect rect)
 	{
-		D2D1_POINT_2F origin;
-		origin.x = (float)rect.x;
-		origin.y = (float)rect.y;
-
-		ID2D1Brush *transparent = convertBrush({ 0x00000000 }, imageData.target());
-
-		ID2D1Brush *brush = convertBrush(_font.foreground, imageData.target());
-		D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;
-
-		imageData.target()->BeginDraw();
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Identity());
-		imageData.target()->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
-		imageData.target()->DrawTextLayout(origin, _layout, brush, options);
-		imageData.target()->EndDraw();
-		brush->Release();
-		transparent->Release();
-	}
-
-	// DirectWriteBuilder2
-
-	DirectWriteBuilder2::DirectWriteBuilder2(
-		DirectWriteRenderer &renderer,
-		std::wstring text,
-		FontOptions font,
-		std::vector<FontRange> &fontRanges)
-		:
-		_renderer(renderer),
-		_text(text),
-		_geometry(nullptr),
-		_sink(nullptr),
-		_font(font)
-	{
-		auto hr = renderer.d2dFactory()->CreatePathGeometry(&_geometry);
-		hr = _geometry->Open(&_sink);
-		
-		IDWriteFontFile *fontFile;
-		hr = renderer.dwriteFactory()->CreateFontFileReference(L"C:\\Windows\\Fonts\\arial.ttf", NULL, &fontFile);
-		hr = renderer.dwriteFactory()->CreateFontFace(
-			DWRITE_FONT_FACE_TYPE_TRUETYPE,
-			1, // file count
-			&fontFile,
-			0, // face index
-			DWRITE_FONT_SIMULATIONS_NONE,
-			&_fontFace);
-
-		std::vector<UINT> codePoints(text.size(), 0);
-		std::vector<UINT16> glyphIndices(text.size(), 0);
-		for (int i = 0; i < text.size(); i++)
+		std::vector<ID2D1Brush *> subBrushes;
+		for (auto &range : _options.fontRanges)
 		{
-			codePoints[i] = text[i];
+			if (range.fontOptions.foreground.color.rgba != _options.baseFont.foreground.color.rgba)
+			{
+				DWRITE_TEXT_RANGE dwriteRange
+				{
+					(UINT32)range.range.start,
+					(UINT32)range.range.length
+				};
+				auto subBrush = convertBrush(range.fontOptions.foreground, imageData.target());
+				subBrushes.push_back(subBrush);
+				_layout->SetDrawingEffect(subBrush, dwriteRange);
+			}
 		}
-		hr = _fontFace->GetGlyphIndicesW(&codePoints[0], text.size(), &glyphIndices[0]);
-		hr = _fontFace->GetGlyphRunOutline(
-			60.0f, //emSize
-			&glyphIndices[0],
-			NULL, //glyphAdvances
-			NULL, //glyphOffsets
-			text.size(),
-			FALSE, //isSideways
-			FALSE, //isRightToLeft
-			_sink);
 
-		_sink->Close();
-	}
-
-	DirectWriteBuilder2::~DirectWriteBuilder2()
-	{
-		if (_sink)
-			_sink->Release();
-		if (_geometry)
-			_geometry->Release();
-		if (_fontFace)
-			_fontFace->Release();
-	}
-
-	Size DirectWriteBuilder2::size() const
-	{
-		return{ 30, 400 };
-	}
-
-	void DirectWriteBuilder2::render(DirectWriteImageData &imageData, Rect rect)
-	{
 		D2D1_POINT_2F origin;
-		origin.x = (float)rect.x;
-		origin.y = (float)rect.y;
+		origin.x = static_cast<float>(rect.x);
+		origin.y = static_cast<float>(rect.y);
 
-		ID2D1Brush *transparent = convertBrush({ 0x00000000 }, imageData.target());
+		D2D1_COLOR_F bg = convertColor(_options.background);
 
-		ID2D1Brush *brush = convertBrush(_font.foreground, imageData.target());
-		ID2D1Brush *stroke = convertBrush({ 0x000000ff }, imageData.target());
+		ID2D1Brush *brush = convertBrush(_options.baseFont.foreground, imageData.target());
 		D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE;
+		D2D1_RECT_F box;
+		box.left = origin.x;
+		box.top = origin.y;
+		box.right = static_cast<float>(rect.width) + box.left;
+		box.bottom = static_cast<float>(rect.height) + box.top;
 
 		imageData.target()->BeginDraw();
 		imageData.target()->SetTransform(D2D1::Matrix3x2F::Identity());
-		//imageData.target()->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_ALIASED);
-		//imageData.target()->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-		
-		//imageData.target()->DrawGeometry(_geometry, stroke, 1.0f);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(49.0f, 199.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(51.0f, 199.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(49.0f, 201.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(51.0f, 201.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(50.0f, 199.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(50.0f, 201.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(49.0f, 200.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(51.0f, 200.0f));
-		imageData.target()->FillGeometry(_geometry, stroke);
-
-		imageData.target()->SetTransform(D2D1::Matrix3x2F::Translation(50.0f, 200.0f));
-		imageData.target()->FillGeometry(_geometry, brush);
-
+		imageData.target()->PushAxisAlignedClip(box, D2D1_ANTIALIAS_MODE_ALIASED);
+		imageData.target()->Clear(bg);
+		imageData.target()->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
+		imageData.target()->DrawTextLayout(origin, _layout, brush, options);
+		imageData.target()->PopAxisAlignedClip();
 		imageData.target()->EndDraw();
 		brush->Release();
-		stroke->Release();
-		transparent->Release();
+
+		for (auto subBrush : subBrushes)
+		{
+			subBrush->Release();
+		}
 	}
 
 	// DirectWriteImageData
@@ -338,9 +259,11 @@ namespace ct
 		props.dpiY = 100.0f;
 		D2D1_PIXEL_FORMAT format;
 		format.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		format.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
+		format.alphaMode = D2D1_ALPHA_MODE_STRAIGHT; //D2D1_ALPHA_MODE_IGNORE; //D2D1_ALPHA_MODE_PREMULTIPLIED;
 		props.pixelFormat = format;
 		result = _renderTarget->CreateBitmap(transparentBitmapSize, (void *)_transparentData, 4, props, &_transparentBmp);
+
+		_renderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
 	}
 
 	DirectWriteImageData::DirectWriteImageData(DirectWriteImageData &&other) :
@@ -362,26 +285,26 @@ namespace ct
 		//	<< "rect=" << rect.x << "," << rect.y << "," << rect.width << "," << rect.height
 		//	<< std::endl;
 
-		if (rect.width == 0 && rect.height == 0)
-		{
-			return;
-		}
+		//if (rect.width == 0 && rect.height == 0)
+		//{
+		//	return;
+		//}
 
-		IWICBitmapLock *lock;
-		WICRect lockRect = { 0, rect.y, _size.width, rect.height };
-		_bitmap->Lock(&lockRect, WICBitmapLockWrite, &lock);
-		BYTE *bytes = NULL;
-		UINT bufferSize = 0;
-		auto bytesPerLine = rect.width * 4;
-		lock->GetDataPointer(&bufferSize, &bytes);
+		//IWICBitmapLock *lock;
+		//WICRect lockRect = { 0, rect.y, _size.width, rect.height };
+		//_bitmap->Lock(&lockRect, WICBitmapLockWrite, &lock);
+		//BYTE *bytes = NULL;
+		//UINT bufferSize = 0;
+		//auto bytesPerLine = rect.width * 4;
+		//lock->GetDataPointer(&bufferSize, &bytes);
 
-		for (auto i = 0; i < rect.height; i++)
-		{
-			BYTE *lineStart = bytes + (((i * _size.width) + rect.x) * 4);
-			memset(lineStart, 0, bytesPerLine);
-		}
+		//for (auto i = 0; i < rect.height; i++)
+		//{
+		//	BYTE *lineStart = bytes + (((i * _size.width) + rect.x) * 4);
+		//	memset(lineStart, 0, bytesPerLine);
+		//}
 
-		lock->Release();
+		//lock->Release();
 	}
 
 	DirectWriteImageData::~DirectWriteImageData()
@@ -519,6 +442,21 @@ namespace ct
 			return DWRITE_FONT_STRETCH_ULTRA_EXPANDED;
 		default:
 			return DWRITE_FONT_STRETCH_NORMAL;
+		}
+	}
+
+	D2D1_TEXT_ANTIALIAS_MODE convertAntialiasMode(AntialiasMode mode)
+	{
+		switch (mode)
+		{
+		case AntialiasMode::Grayscale:
+			return D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE;
+		case AntialiasMode::None:
+			return D2D1_TEXT_ANTIALIAS_MODE_ALIASED;
+		case AntialiasMode::SubPixel:
+			return D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE;
+		default:
+			return D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE;
 		}
 	}
 }

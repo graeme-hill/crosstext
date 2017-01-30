@@ -77,8 +77,7 @@ namespace ct
 		DirectWriteBuilder(
 			DirectWriteRenderer &renderer,
 			std::wstring text,
-			FontOptions font,
-			std::vector<FontRange> &fontRanges);
+			TextOptions options);
 		DirectWriteBuilder(const DirectWriteBuilder &) = delete;
 		DirectWriteBuilder(DirectWriteBuilder &&) = delete;
 		~DirectWriteBuilder();
@@ -91,31 +90,7 @@ namespace ct
 		std::wstring _text;
 		IDWriteTextLayout *_layout;
 		IDWriteTextFormat *_format;
-		FontOptions _font;
-	};
-
-	class DirectWriteBuilder2
-	{
-	public:
-		DirectWriteBuilder2(
-			DirectWriteRenderer &renderer,
-			std::wstring text,
-			FontOptions font,
-			std::vector<FontRange> &fontRanges);
-		DirectWriteBuilder2(const DirectWriteBuilder2 &) = delete;
-		DirectWriteBuilder2(DirectWriteBuilder2 &&) = delete;
-		~DirectWriteBuilder2();
-
-		Size size() const;
-		void render(DirectWriteImageData &imageData, Rect rect);
-
-	private:
-		DirectWriteRenderer &_renderer;
-		std::wstring _text;
-		ID2D1PathGeometry *_geometry;
-		ID2D1GeometrySink *_sink;
-		IDWriteFontFace *_fontFace;
-		FontOptions _font;
+		TextOptions _options;
 	};
 
 	D2D1_COLOR_F convertColor(Color color);
@@ -123,4 +98,5 @@ namespace ct
 	DWRITE_FONT_WEIGHT convertFontWeight(FontWeight weight);
 	DWRITE_FONT_STYLE convertFontStyle(FontStyle style);
 	DWRITE_FONT_STRETCH convertFontStretch(FontStretch stretch);
+	D2D1_TEXT_ANTIALIAS_MODE convertAntialiasMode(AntialiasMode mode);
 }

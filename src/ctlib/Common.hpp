@@ -93,6 +93,13 @@ namespace ct
 		UltraExpanded
 	};
 
+	enum class AntialiasMode
+	{
+		None,
+		Grayscale,
+		SubPixel
+	};
+
 	struct Range
 	{
 		int start;
@@ -104,7 +111,7 @@ namespace ct
 		Color color;
 	};
 
-	struct FontOptions
+	struct Font
 	{
 		std::wstring family;
 		FontWeight weight;
@@ -113,11 +120,101 @@ namespace ct
 		float size;
 		std::wstring locale;
 		Brush foreground;
+
+		Font withFamily(std::wstring newFamily)
+		{
+			Font newFont(*this);
+			newFont.family = newFamily;
+			return newFont;
+		}
+
+		Font withWeight(FontWeight newWeight)
+		{
+			Font newFont(*this);
+			newFont.weight = newWeight;
+			return newFont;
+		}
+
+		Font withStyle(FontStyle newStyle)
+		{
+			Font newFont(*this);
+			newFont.style = newStyle;
+			return newFont;
+		}
+
+		Font withStretch(FontStretch newStretch)
+		{
+			Font newFont(*this);
+			newFont.stretch = newStretch;
+			return newFont;
+		}
+
+		Font withSize(float newSize)
+		{
+			Font newFont(*this);
+			newFont.size = newSize;
+			return newFont;
+		}
+
+		Font withLocale(std::wstring newLocale)
+		{
+			Font newFont(*this);
+			newFont.locale = newLocale;
+			return newFont;
+		}
+
+		Font withForeground(Brush newForeground)
+		{
+			Font newFont(*this);
+			newFont.foreground = newForeground;
+			return newFont;
+		}
 	};
 
 	struct FontRange
 	{
-		FontOptions fontOptions;
+		Font fontOptions;
 		Range range;
+	};
+
+	struct TextOptions
+	{
+		Font baseFont;
+		AntialiasMode antialiasMode;
+		std::vector<FontRange> fontRanges;
+		Color background;
+
+		inline static TextOptions fromFont(Font base)
+		{
+			return{ base, AntialiasMode::Grayscale, {}, 0x00000000 };
+		}
+
+		TextOptions withFont(Font newBaseFont)
+		{
+			TextOptions opts(*this);
+			opts.baseFont = newBaseFont;
+			return opts;
+		}
+
+		TextOptions withAntialiasMode(AntialiasMode newAntialiasMode)
+		{
+			TextOptions opts(*this);
+			opts.antialiasMode = newAntialiasMode;
+			return opts;
+		}
+
+		TextOptions withFontRanges(std::vector<FontRange> newRanges)
+		{
+			TextOptions opts(*this);
+			opts.fontRanges = newRanges;
+			return opts;
+		}
+
+		TextOptions withBackground(Color newBackground)
+		{
+			TextOptions opts(*this);
+			opts.background = newBackground;
+			return opts;
+		}
 	};
 }
