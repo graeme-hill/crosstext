@@ -217,7 +217,7 @@ namespace ct
 		imageData.target()->SetTransform(D2D1::Matrix3x2F::Identity());
 		imageData.target()->PushAxisAlignedClip(box, D2D1_ANTIALIAS_MODE_ALIASED);
 		imageData.target()->Clear(bg);
-		imageData.target()->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
+		imageData.target()->SetTextAntialiasMode(convertAntialiasMode(_options.antialiasMode));
 		imageData.target()->DrawTextLayout(origin, _layout, brush, options);
 		imageData.target()->PopAxisAlignedClip();
 		imageData.target()->EndDraw();
@@ -259,7 +259,7 @@ namespace ct
 		props.dpiY = 100.0f;
 		D2D1_PIXEL_FORMAT format;
 		format.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		format.alphaMode = D2D1_ALPHA_MODE_STRAIGHT; //D2D1_ALPHA_MODE_IGNORE; //D2D1_ALPHA_MODE_PREMULTIPLIED;
+		format.alphaMode = D2D1_ALPHA_MODE_IGNORE; //D2D1_ALPHA_MODE_PREMULTIPLIED;
 		props.pixelFormat = format;
 		result = _renderTarget->CreateBitmap(transparentBitmapSize, (void *)_transparentData, 4, props, &_transparentBmp);
 
