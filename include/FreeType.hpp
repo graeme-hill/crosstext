@@ -75,6 +75,7 @@ namespace ct
 		TextBlockMetrics result();
 
 	private:
+		FreeTypeSysContext &_context;
 		int _penX;
 		int _penY;
 		Size _currentSize;
@@ -91,6 +92,11 @@ namespace ct
 		FreeTypeCharRenderer(const FreeTypeCharRenderer &) = delete;
 		FreeTypeCharRenderer(FreeTypeCharRenderer &&) = delete;
 		void next(wchar_t ch, FreeTypeFont *font, float size, Brush foreground);
+
+	private:
+		FreeTypeSysContext &_context;
+		FreeTypeImageData &_imageData;
+		Rect _rect;
 	};
 
 	class LinuxTimer

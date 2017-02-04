@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <stack>
+#include <algorithm>
 
 namespace ct
 {
@@ -10,7 +11,7 @@ namespace ct
 	 *************************************************************************/
 
 	TextManager::TextManager(TOptions options) :
-		_sysContext(TSysContext(o`ptions)), _lastUsed(0)
+		_sysContext(TSysContext(options)), _lastUsed(0)
 	{
 		for (int i = 0; i < options.textureCount(); i++)
 		{
@@ -27,7 +28,7 @@ namespace ct
 			return Placement::found(firstResult.slot, &_textures.at(_lastUsed));
 		}
 
-		for (int i = 0; i < _textures.size(); i++)
+		for (unsigned int i = 0; i < _textures.size(); i++)
 		{
 			if (i == _lastUsed)
 			{
@@ -54,7 +55,7 @@ namespace ct
 
 	TFont TextManager::loadFont(std::string path)
 	{
-		return TFont(path, _renderer);
+		return TFont(path, _sysContext);
 	}
 
 	/**************************************************************************
@@ -64,33 +65,31 @@ namespace ct
 	TextBlock::TextBlock(TextManager &manager, std::wstring text, TextOptions options) :
 		_manager(&manager),
 		_options(options),
-		_placement(initPlacement(manager, text, options))
+		_placement(initPlacement(text))
 	{ }
 
-	Placement TextBlock::initPlacement(
-		TextManager &manager,
-		std::wstring &text,
-		TextOptions options)
+	Placement TextBlock::initPlacement(std::wstring &text)
 	{
 		// Make sure ranges are not out of order
-		options.fontRanges.sort(
-			options.fontRanges.begin(),
-			options.fontRanges.end(),
-			[](FontRange a, FontRange b)
+		std::sort(
+			_options.styleRanges.begin(),
+			_options.styleRanges.end(),
+			[](StyleRange a, StyleRange b)
 			{
 				return a.range.start < b.range.start;
 			});
 
 		// Calculate how much space it will take up so we know where to fit it
-		Size size = calcSize(text, options);
+		TextBlockMetrics metrics = calcMetrics(text);
+		Size size = metrics.size;
 
 		// Find a spot (or not)
-		auto placement = manager.findPlacement(size);
+		auto placement = _manager->findPlacement(size);
 
 		// Render the characters to the texture if a spot was found`
 		if (placement.isFound)
 		{
-			render(text, options, placement);
+			render(text, placement);
 		}
 
 		return placement;
@@ -106,25 +105,24 @@ namespace ct
 
 	void TextBlock::render(
 		std::wstring &text,
-		TextOptions options,
 		Placement placement)
 	{
 		TCharRenderer charRenderer(
-			_manager.sysContext(),
+			_manager->sysContext(),
 			placement.texture->imageData(),
 			placement.slot.rect);
 
-		walk(text, options, [&charRenderer](wchar_t ch, Style style)
+		walk(text, [&charRenderer](wchar_t ch, Style style)
 		{
 			charRenderer.next(ch, style.font, style.size, style.foreground);
 		});
 	}
 
-	Size TextBlock::calcSize(std::wstring &text, TextOptions options)
+	TextBlockMetrics TextBlock::calcMetrics(std::wstring &text)
 	{
-		TMetricBuilder metricBuilder(_manager.sysContext());
+		TMetricBuilder metricBuilder(_manager->sysContext());
 
-		walk(text, options, [&metricBuilder](wchar_t ch, Style style)
+		walk(text, [&metricBuilder](wchar_t ch, Style style)
 		{
 			metricBuilder.next(ch, style.font, style.size);
 		});
@@ -134,19 +132,19 @@ namespace ct
 
 	void TextBlock::walk(
 		std::wstring &text,
-		TextOptions &options,
 		std::function<void(wchar_t, Style)> action)
 	{
-		std::stack<FontRange> rangeStack;
-		rangeStack.push({ options.baseFont, { 0, text.size() }});
+		std::stack<StyleRange> rangeStack;
+		rangeStack.push(
+			{ _options.baseStyle, { 0, static_cast<int>(text.size()) }});
 		int nextRangeIndex = 0;
 
-		for (int i = 0; i < text.size(); i++)
+		for (size_t  i = 0; i < text.size(); i++)
 		{
-			if (nextRangeIndex < options.styleRanges.size()
-				&& options.styleRanges[nextRangeIndex].range.start == i)
+			if (nextRangeIndex < _options.styleRanges.size()
+				&& _options.styleRanges[nextRangeIndex].range.start == i)
 			{
-				rangeStack.push(options.ranges[nextRangeIndex++]);
+				rangeStack.push(_options.styleRanges[nextRangeIndex++]);
 			}
 
 			action(text[i], rangeStack.top().style);

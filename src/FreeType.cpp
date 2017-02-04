@@ -3,27 +3,27 @@
 
 namespace ct
 {
-	// FreeTypeRenderOptions
+	// FreeTypeOptions
 
-	FreeTypeRenderOptions::FreeTypeRenderOptions() :
-		FreeTypeRenderOptions(
+	FreeTypeOptions::FreeTypeOptions() :
+		FreeTypeOptions(
 			{ DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE },
 			DEFAULT_TEXTURE_COUT)
 	{ }
 
-	FreeTypeRenderOptions::FreeTypeRenderOptions(Size textureSize, int textureCount) :
+	FreeTypeOptions::FreeTypeOptions(Size textureSize, int textureCount) :
 		_textureSize(textureSize), _textureCount(textureCount)
 	{ }
 
-	// FreeTypeRenderer
+	// FreeTypeSysContext
 
-	FreeTypeRenderer::FreeTypeRenderer(FreeTypeRenderOptions options) :
+	FreeTypeSysContext::FreeTypeSysContext(FreeTypeOptions options) :
 		_options(options)
 	{
 		FT_Init_FreeType(&_library);
 	}
 
-	FreeTypeRenderer::~FreeTypeRenderer()
+	FreeTypeSysContext::~FreeTypeSysContext()
 	{
 		FT_Done_FreeType(_library);
 	}
@@ -31,12 +31,12 @@ namespace ct
 	// FreeTypeImageData
 
 	FreeTypeImageData::FreeTypeImageData(
-		FreeTypeRenderer &renderer, Size size) :
-		_renderer(renderer), _size(size)
+		FreeTypeSysContext &context, Size size) :
+		_context(context), _size(size)
 	{ }
 
 	FreeTypeImageData::FreeTypeImageData(FreeTypeImageData &&other) :
-		_renderer(other._renderer), _size(other._size)
+		_context(other._context), _size(other._size)
 	{ }
 
 	void FreeTypeImageData::savePng(std::string path)
@@ -44,36 +44,12 @@ namespace ct
 		std::cout << "save png to " << path << std::endl;
 	}
 
-	// FreeTypeBuilder
-
-	FreeTypeBuilder::FreeTypeBuilder(
-		FreeTypeRenderer &renderer,
-		std::wstring text,
-		TextOptions options) :
-		_renderer(renderer),
-		_text(text),
-		_options(options)
-	{ }
-
-	FreeTypeBuilder::~FreeTypeBuilder()
-	{ }
-
-	Size FreeTypeBuilder::size() const
-	{
-		return { 100, 100 };
-	}
-
-	void FreeTypeBuilder::render(FreeTypeImageData &imageData, Rect rect)
-	{
-		std::cout << "render" << std::endl;
-	}
-
 	// FreeTypeFont
 
-	FreeTypeFont::FreeTypeFont(std::string path, FreeTypeRenderer &renderer) :
+	FreeTypeFont::FreeTypeFont(std::string path, FreeTypeSysContext &context) :
 		_face(nullptr)
 	{
-		auto error = FT_New_Face(renderer.library(), path.c_str(), 0, &_face);
+		auto error = FT_New_Face(context.library(), path.c_str(), 0, &_face);
 		if (error)
 		{
 			_face = nullptr;
@@ -92,5 +68,43 @@ namespace ct
 		{
 			FT_Done_Face(_face);
 		}
+	}
+
+	// FreeTypeMetricBuilder
+
+	FreeTypeMetricBuilder::FreeTypeMetricBuilder(FreeTypeSysContext &context) :
+		_context(context), _penX(0), _penY(0), _currentSize{ 0, 0 }
+	{
+		_baselines.push_back(10);
+	}
+
+	void FreeTypeMetricBuilder::next(wchar_t ch, FreeTypeFont *font, float size)
+	{
+		std::cout << "next" << std::endl;
+		_penX += 10;
+		_currentSize.width += 10;
+		_currentSize.height = 10;
+	}
+
+	TextBlockMetrics FreeTypeMetricBuilder::result()
+	{
+		return { _currentSize, std::move(_baselines) };
+	}
+
+	// FreeTypeCharRenderer
+
+	FreeTypeCharRenderer::FreeTypeCharRenderer(
+		FreeTypeSysContext &context,
+		FreeTypeImageData &imageData,
+		Rect rect) :
+		_context(context),
+		_imageData(imageData),
+		_rect(rect)
+	{ }
+
+	void FreeTypeCharRenderer::next(
+		wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
+	{
+		std::cout << "render char" << std::endl;
 	}
 }

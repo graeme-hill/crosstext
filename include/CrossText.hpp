@@ -39,11 +39,11 @@ namespace ct
 {
 	struct Style
 	{
-		const TFont *font;
+		TFont *font;
 		float size;
 		Brush foreground;
 
-		Style withFont(const TSysFont *font)
+		Style withFont(TFont *font)
 		{
 			Style newStyle(*this);
 			newStyle.font = font;
@@ -73,20 +73,20 @@ namespace ct
 
 	struct TextOptions
 	{
-		Font baseFont;
+		Style baseStyle;
 		AntialiasMode antialiasMode;
 		std::vector<StyleRange> styleRanges;
 		Color background;
 
-		inline static TextOptions fromFont(Font base)
+		inline static TextOptions fromStyle(Style base)
 		{
 			return{ base, AntialiasMode::Grayscale, {}, 0x00000000 };
 		}
 
-		TextOptions withFont(Font newBaseFont)
+		TextOptions withStyle(Style newBaseStyle)
 		{
 			TextOptions opts(*this);
-			opts.baseFont = newBaseFont;
+			opts.baseStyle = newBaseStyle;
 			return opts;
 		}
 
@@ -97,10 +97,10 @@ namespace ct
 			return opts;
 		}
 
-		TextOptions withFontRanges(std::vector<FontRange> newRanges)
+		TextOptions withStyleRanges(std::vector<StyleRange> newRanges)
 		{
 			TextOptions opts(*this);
-			opts.fontRanges = newRanges;
+			opts.styleRanges = newRanges;
 			return opts;
 		}
 
@@ -272,7 +272,7 @@ namespace ct
 	private:
 		std::vector<Texture> _textures;
 		TSysContext _sysContext;
-		int _lastUsed;
+		unsigned int _lastUsed;
 	};
 
 	class TextBlock
@@ -291,19 +291,12 @@ namespace ct
 		Texture *texture() { return _placement.texture; }
 
 	private:
-		static Placement initPlacement(
-			TextManager &manager,
-			std::wstring &text,
-			TextOptions options);
-		Size calcSize(std::wstring &text, TextOptions options);
-		void render(
-			std::wstring &text,
-			TextOptions options,
-			Placement placement);
+		Placement initPlacement(std::wstring &text);
+		TextBlockMetrics calcMetrics(std::wstring &text);
+		void render(std::wstring &text, Placement placement);
 		void walk(
 			std::wstring &text,
-			TextOptions &options,
-			std::function<void(char_t, Style)> action);
+			std::function<void(wchar_t, Style)> action);
 		void dispose();
 		inline bool foundPlacement() { return _placement.texture != nullptr; };
 		inline bool dead() { return _manager == nullptr; }

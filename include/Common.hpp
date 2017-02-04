@@ -16,7 +16,7 @@ namespace ct
 	struct TextBlockMetrics
 	{
 		Size size;
-		std::vector<int> baseLines;
+		std::vector<int> baselines;
 	};
 
 	struct Rect
