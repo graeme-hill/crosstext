@@ -146,7 +146,7 @@ namespace ct
 
 			action(text[i], rangeStack.top().style);
 
-			while (rangeStack.top().range.last() <= i)
+			while (!rangeStack.empty() &&rangeStack.top().range.last() <= i)
 			{
 				rangeStack.pop();
 			}
