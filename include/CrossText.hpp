@@ -136,8 +136,8 @@ namespace ct
 
 	struct YCount
 	{
-		int y;
-		int *count;
+		unsigned int y;
+		unsigned int *count;
 	};
 
 	class SpacialIndex
@@ -187,12 +187,12 @@ namespace ct
 		YCache(int height);
 		YCache(const YCache &other) = delete;
 		YCache(YCache &&other);
-		void increment(int y);
-		void decrement(int y);
+		void increment(unsigned int y);
+		void decrement(unsigned int y);
 		void withYValuesInPriorityOrder(std::function<bool(int y)> callback);
 
 	private:
-		std::vector<int> _yCounts;
+		std::vector<unsigned int> _yCounts;
 		std::vector<YCount> _yCountPriority;
 	};
 
@@ -215,12 +215,12 @@ namespace ct
 		bool empty();
 		uint64_t nextIndex() { return _nextIndex++; }
 
-		YCache _yCache;
-		std::unordered_map<uint64_t, Slot> _slotMap;
 		std::vector<uint64_t> _slotIndexes;
 		Size _size;
 		uint64_t _nextIndex;
+		std::unordered_map<uint64_t, Slot> _slotMap;
 		SpacialIndex _spacialIndex;
+		YCache _yCache;
 		std::unordered_map<int, bool> _usedXOptions;
 		bool _moved;
 	};
@@ -291,7 +291,6 @@ namespace ct
 		Texture *texture() { return _placement.texture; }
 
 	private:
-		Placement initPlacement(std::wstring &text);
 		TextBlockMetrics calcMetrics(std::wstring &text);
 		void render(std::wstring &text, Placement placement);
 		void walk(
@@ -302,7 +301,7 @@ namespace ct
 		inline bool dead() { return _manager == nullptr; }
 
 		TextManager *_manager;
-		Placement _placement;
 		TextOptions _options;
+		Placement _placement;
 	};
 }

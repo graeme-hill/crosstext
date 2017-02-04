@@ -65,10 +65,7 @@ namespace ct
 	TextBlock::TextBlock(TextManager &manager, std::wstring text, TextOptions options) :
 		_manager(&manager),
 		_options(options),
-		_placement(initPlacement(text))
-	{ }
-
-	Placement TextBlock::initPlacement(std::wstring &text)
+		_placement(Placement::notFound())
 	{
 		// Make sure ranges are not out of order
 		std::sort(
@@ -84,21 +81,19 @@ namespace ct
 		Size size = metrics.size;
 
 		// Find a spot (or not)
-		auto placement = _manager->findPlacement(size);
+		_placement = _manager->findPlacement(size);
 
 		// Render the characters to the texture if a spot was found`
-		if (placement.isFound)
+		if (_placement.isFound)
 		{
-			render(text, placement);
+			render(text, _placement);
 		}
-
-		return placement;
 	}
 
 	TextBlock::TextBlock(TextBlock &&other) :
 		_manager(other._manager),
-		_placement(other._placement),
-		_options(other._options)
+		_options(other._options),
+		_placement(other._placement)
 	{
 		other._manager = nullptr;
 	}
@@ -135,11 +130,13 @@ namespace ct
 		std::function<void(wchar_t, Style)> action)
 	{
 		std::stack<StyleRange> rangeStack;
-		rangeStack.push(
-			{ _options.baseStyle, { 0, static_cast<int>(text.size()) }});
-		int nextRangeIndex = 0;
+		rangeStack.push({
+			_options.baseStyle,
+			{ 0, static_cast<unsigned int>(text.size()) }
+		});
+		unsigned int nextRangeIndex = 0;
 
-		for (size_t  i = 0; i < text.size(); i++)
+		for (size_t i = 0; i < text.size(); i++)
 		{
 			if (nextRangeIndex < _options.styleRanges.size()
 				&& _options.styleRanges[nextRangeIndex].range.start == i)
@@ -343,7 +340,7 @@ namespace ct
 		_yCountPriority(std::move(other._yCountPriority))
 	{ }
 
-	void YCache::increment(int y)
+	void YCache::increment(unsigned int y)
 	{
 		if (y >= _yCounts.size())
 		{
@@ -359,7 +356,7 @@ namespace ct
 		}
 		else
 		{
-			for (int i = 0; i < _yCountPriority.size(); i++)
+			for (unsigned int i = 0; i < _yCountPriority.size(); i++)
 			{
 				auto yCount = _yCountPriority[i];
 				if (yCount.y == y)
@@ -374,7 +371,7 @@ namespace ct
 		(*countRef)++;
 	}
 
-	void YCache::decrement(int y)
+	void YCache::decrement(unsigned int y)
 	{
 		if (y >= _yCounts.size())
 		{
@@ -384,7 +381,7 @@ namespace ct
 		auto countRef = &_yCounts[y];
 		auto count = *countRef;
 
-		for (int i = 0; i < _yCountPriority.size(); i++)
+		for (unsigned int i = 0; i < _yCountPriority.size(); i++)
 		{
 			auto yCount = _yCountPriority[i];
 			if (yCount.y == y)

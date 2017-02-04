@@ -108,10 +108,10 @@ namespace ct
 
 	struct Range
 	{
-		int start;
-		int length;
+		unsigned int start;
+		unsigned int length;
 
-		int last() const
+		unsigned int last() const
 		{
 			return start + length - 1;
 		}
