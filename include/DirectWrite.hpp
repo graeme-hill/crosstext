@@ -60,7 +60,6 @@ namespace ct
 		Size size() const { return _size; }
 		void savePng(LPCWSTR path);
 		ID2D1Bitmap *transparentBmp() { return _transparentBmp; }
-		void clearRect(Rect rect);
 
 	private:
 		IWICBitmap *_bitmap;
@@ -91,6 +90,27 @@ namespace ct
 		IDWriteTextLayout *_layout;
 		IDWriteTextFormat *_format;
 		TextOptions _options;
+	};
+
+	class WindowsTimer
+	{
+	public:
+		WindowsTimer()
+		{
+			QueryPerformanceFrequency(&_frequency);
+			QueryPerformanceCounter(&_start);
+		}
+
+		double millis()
+		{
+			LARGE_INTEGER now;
+			QueryPerformanceCounter(&now);
+			return (now.QuadPart - _start.QuadPart) * 1000.0 / _frequency.QuadPart;
+		}
+
+	private:
+		LARGE_INTEGER _frequency;
+		LARGE_INTEGER _start;
 	};
 
 	D2D1_COLOR_F convertColor(Color color);

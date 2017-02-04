@@ -279,34 +279,6 @@ namespace ct
 		other._transparentBmp = nullptr;
 	}
 
-	void DirectWriteImageData::clearRect(Rect rect)
-	{
-		//std::cout << "clearRect "
-		//	<< "rect=" << rect.x << "," << rect.y << "," << rect.width << "," << rect.height
-		//	<< std::endl;
-
-		//if (rect.width == 0 && rect.height == 0)
-		//{
-		//	return;
-		//}
-
-		//IWICBitmapLock *lock;
-		//WICRect lockRect = { 0, rect.y, _size.width, rect.height };
-		//_bitmap->Lock(&lockRect, WICBitmapLockWrite, &lock);
-		//BYTE *bytes = NULL;
-		//UINT bufferSize = 0;
-		//auto bytesPerLine = rect.width * 4;
-		//lock->GetDataPointer(&bufferSize, &bytes);
-
-		//for (auto i = 0; i < rect.height; i++)
-		//{
-		//	BYTE *lineStart = bytes + (((i * _size.width) + rect.x) * 4);
-		//	memset(lineStart, 0, bytesPerLine);
-		//}
-
-		//lock->Release();
-	}
-
 	DirectWriteImageData::~DirectWriteImageData()
 	{
 		if (_transparentBmp)

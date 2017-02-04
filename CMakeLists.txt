@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.5.1)
+project(crosstext)
+
+include_directories(include)
+set(CMAKE_CXX_STANDARD 14)
+set(SOURCES src/CrossText.cpp src/FreeType.cpp test/freetype/fttest.cpp)
+add_definitions(-DOS_LINUX)
+add_executable(fttest ${SOURCES})
+
+find_package (PNG)
+if (PNG_FOUND)
+  include_directories(${PNG_INCLUDE_DIRS})
+  target_link_libraries (fttest ${PNG_LIBRARIES})
+endif (PNG_FOUND)
+
+find_package (Freetype)
+if (FREETYPE_FOUND)
+  include_directories(${FREETYPE_INCLUDE_DIRS})
+  target_link_libraries (fttest ${FREETYPE_LIBRARIES})
+endif (FREETYPE_FOUND)

@@ -12,6 +12,21 @@ namespace ct
 	typedef DirectWriteBuilder TBuilder;
 	typedef DirectWriteRenderer TRenderer;
 	typedef DirectWriteImageData TImageData;
+	typedef WindowsTimer TTimer;
+}
+#endif
+
+#ifdef OS_LINUX
+#include "FreeType.hpp"
+namespace ct
+{
+	typedef FreeTypeOptions TOptions;
+	typedef FreeTypeSysContext TSysContext;
+	typedef FreeTypeImageData TImageData;
+	typedef FreeTypeFont TFont;
+	typedef FreeTypeMetricBuilder TMetricBuilder;
+	typedef FreeTypeCharRenderer TCharRenderer;
+	typedef LinuxTimer TTimer;
 }
 #endif
 
@@ -22,6 +37,81 @@ namespace ct
 
 namespace ct
 {
+	struct Style
+	{
+		const TFont *font;
+		float size;
+		Brush foreground;
+
+		Style withFont(const TSysFont *font)
+		{
+			Style newStyle(*this);
+			newStyle.font = font;
+			return newStyle;
+		}
+
+		Style withSize(float newSize)
+		{
+			Style newStyle(*this);
+			newStyle.size = newSize;
+			return newStyle;
+		}
+
+		Style withForeground(Brush newForeground)
+		{
+			Style newStyle(*this);
+			newStyle.foreground = newForeground;
+			return newStyle;
+		}
+	};
+
+	struct StyleRange
+	{
+		Style style;
+		Range range;
+	};
+
+	struct TextOptions
+	{
+		Font baseFont;
+		AntialiasMode antialiasMode;
+		std::vector<StyleRange> styleRanges;
+		Color background;
+
+		inline static TextOptions fromFont(Font base)
+		{
+			return{ base, AntialiasMode::Grayscale, {}, 0x00000000 };
+		}
+
+		TextOptions withFont(Font newBaseFont)
+		{
+			TextOptions opts(*this);
+			opts.baseFont = newBaseFont;
+			return opts;
+		}
+
+		TextOptions withAntialiasMode(AntialiasMode newAntialiasMode)
+		{
+			TextOptions opts(*this);
+			opts.antialiasMode = newAntialiasMode;
+			return opts;
+		}
+
+		TextOptions withFontRanges(std::vector<FontRange> newRanges)
+		{
+			TextOptions opts(*this);
+			opts.fontRanges = newRanges;
+			return opts;
+		}
+
+		TextOptions withBackground(Color newBackground)
+		{
+			TextOptions opts(*this);
+			opts.background = newBackground;
+			return opts;
+		}
+	};
+
 	struct Slot
 	{
 		Rect rect;
@@ -148,7 +238,7 @@ namespace ct
 		TImageData _imageData;
 		RectangleOrganizer _organizer;
 	};
-	
+
 	struct Placement
 	{
 		bool isFound;
@@ -169,18 +259,19 @@ namespace ct
 	class TextManager
 	{
 	public:
-		TextManager(TRenderOptions renderOptions);
+		TextManager(TOptions options);
 		TextManager(const TextManager &) = delete;
 		TextManager(TextManager &&) = delete;
 		Placement findPlacement(Size size);
 		void releaseRect(Texture *texture, Slot slot);
+		TFont loadFont(std::string path);
 
-		TRenderer &renderer() { return _renderer; }
+		TSysContext &sysContext() { return _sysContext; }
 		std::vector<Texture> &textures() { return _textures; }
 
 	private:
 		std::vector<Texture> _textures;
-		TRenderer _renderer;
+		TSysContext _sysContext;
 		int _lastUsed;
 	};
 
@@ -204,6 +295,15 @@ namespace ct
 			TextManager &manager,
 			std::wstring &text,
 			TextOptions options);
+		Size calcSize(std::wstring &text, TextOptions options);
+		void render(
+			std::wstring &text,
+			TextOptions options,
+			Placement placement);
+		void walk(
+			std::wstring &text,
+			TextOptions &options,
+			std::function<void(char_t, Style)> action);
 		void dispose();
 		inline bool foundPlacement() { return _placement.texture != nullptr; };
 		inline bool dead() { return _manager == nullptr; }
@@ -212,26 +312,4 @@ namespace ct
 		Placement _placement;
 		TextOptions _options;
 	};
-
-	class Timer
-	{
-	public:
-		Timer()
-		{
-			QueryPerformanceFrequency(&_frequency);
-			QueryPerformanceCounter(&_start);
-		}
-
-		double millis()
-		{
-			LARGE_INTEGER now;
-			QueryPerformanceCounter(&now);
-			return (now.QuadPart - _start.QuadPart) * 1000.0 / _frequency.QuadPart;
-		}
-
-	private:
-		LARGE_INTEGER _frequency;
-		LARGE_INTEGER _start;
-	};
 }
-

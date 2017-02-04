@@ -1,6 +1,7 @@
 #include "CrossText.hpp"
 #include <iostream>
 #include <algorithm>
+#include <stack>
 
 namespace ct
 {
@@ -8,12 +9,13 @@ namespace ct
 	 * TextManager
 	 *************************************************************************/
 
-	TextManager::TextManager(TRenderOptions renderOptions) :
-		_renderer(TRenderer(renderOptions)), _lastUsed(0)
+	TextManager::TextManager(TOptions options) :
+		_sysContext(TSysContext(o`ptions)), _lastUsed(0)
 	{
-		for (int i = 0; i < renderOptions.textureCount(); i++)
+		for (int i = 0; i < options.textureCount(); i++)
 		{
-			_textures.push_back(Texture(TImageData(_renderer, renderOptions.textureSize())));
+			_textures.push_back(
+				Texture(TImageData(_sysContext, options.textureSize())));
 		}
 	}
 
@@ -47,8 +49,12 @@ namespace ct
 
 	void TextManager::releaseRect(Texture *texture, Slot slot)
 	{
-		texture->imageData().clearRect(slot.rect);
 		texture->organizer().releaseSlot(slot.index);
+	}
+
+	TFont TextManager::loadFont(std::string path)
+	{
+		return TFont(path, _renderer);
 	}
 
 	/**************************************************************************
@@ -62,17 +68,31 @@ namespace ct
 	{ }
 
 	Placement TextBlock::initPlacement(
-		TextManager &manager, 
-		std::wstring &text, 
+		TextManager &manager,
+		std::wstring &text,
 		TextOptions options)
 	{
-		TBuilder builder(manager.renderer(), text, options);
-		auto size = builder.size();
+		// Make sure ranges are not out of order
+		options.fontRanges.sort(
+			options.fontRanges.begin(),
+			options.fontRanges.end(),
+			[](FontRange a, FontRange b)
+			{
+				return a.range.start < b.range.start;
+			});
+
+		// Calculate how much space it will take up so we know where to fit it
+		Size size = calcSize(text, options);
+
+		// Find a spot (or not)
 		auto placement = manager.findPlacement(size);
+
+		// Render the characters to the texture if a spot was found`
 		if (placement.isFound)
 		{
-			builder.render(placement.texture->imageData(), placement.slot.rect);
+			render(text, options, placement);
 		}
+
 		return placement;
 	}
 
@@ -82,6 +102,60 @@ namespace ct
 		_options(other._options)
 	{
 		other._manager = nullptr;
+	}
+
+	void TextBlock::render(
+		std::wstring &text,
+		TextOptions options,
+		Placement placement)
+	{
+		TCharRenderer charRenderer(
+			_manager.sysContext(),
+			placement.texture->imageData(),
+			placement.slot.rect);
+
+		walk(text, options, [&charRenderer](wchar_t ch, Style style)
+		{
+			charRenderer.next(ch, style.font, style.size, style.foreground);
+		});
+	}
+
+	Size TextBlock::calcSize(std::wstring &text, TextOptions options)
+	{
+		TMetricBuilder metricBuilder(_manager.sysContext());
+
+		walk(text, options, [&metricBuilder](wchar_t ch, Style style)
+		{
+			metricBuilder.next(ch, style.font, style.size);
+		});
+
+		return metricBuilder.result();
+	}
+
+	void TextBlock::walk(
+		std::wstring &text,
+		TextOptions &options,
+		std::function<void(wchar_t, Style)> action)
+	{
+		std::stack<FontRange> rangeStack;
+		rangeStack.push({ options.baseFont, { 0, text.size() }});
+		int nextRangeIndex = 0;
+
+		for (int i = 0; i < text.size(); i++)
+		{
+			if (nextRangeIndex < options.styleRanges.size()
+				&& options.styleRanges[nextRangeIndex].range.start == i)
+			{
+				rangeStack.push(options.ranges[nextRangeIndex++]);
+			}
+
+			action(text[i], rangeStack.top().style);
+
+			while (rangeStack.top().range.last() <= i)
+			{
+				rangeStack.pop();
+			}
+		}
 	}
 
 	TextBlock &TextBlock::operator=(TextBlock &&other)
@@ -311,7 +385,7 @@ namespace ct
 
 		auto countRef = &_yCounts[y];
 		auto count = *countRef;
-		
+
 		for (int i = 0; i < _yCountPriority.size(); i++)
 		{
 			auto yCount = _yCountPriority[i];
