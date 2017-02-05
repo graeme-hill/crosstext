@@ -1,8 +1,4 @@
 #include "CrossText.hpp"
-#include <iostream>
-#include <algorithm>
-#include <stack>
-#include <algorithm>
 
 namespace ct
 {
@@ -11,7 +7,7 @@ namespace ct
 	 *************************************************************************/
 
 	TextManager::TextManager(TOptions options) :
-		_sysContext(TSysContext(options)), _lastUsed(0)
+		_sysContext(TSysContext(options)), _lastUsed(0), _options(options)
 	{
 		for (int i = 0; i < options.textureCount(); i++)
 		{
@@ -107,50 +103,27 @@ namespace ct
 			placement.texture->imageData(),
 			placement.slot.rect);
 
-		walk(text, [&charRenderer](wchar_t ch, Style style)
-		{
-			charRenderer.next(ch, style.font, style.size, style.foreground);
-		});
+		walk(text, charRenderer);
+
+		// walk(text, [&charRenderer](wchar_t ch, Style style)
+		// {
+		// 	charRenderer.next(ch, style.font, style.size, style.foreground);
+		// });
 	}
 
 	TextBlockMetrics TextBlock::calcMetrics(std::wstring &text)
 	{
-		TMetricBuilder metricBuilder(_manager->sysContext());
+		auto maxSize = _manager->options().textureSize();
+		TMetricBuilder metricBuilder(_manager->sysContext(), maxSize);
 
-		walk(text, [&metricBuilder](wchar_t ch, Style style)
-		{
-			metricBuilder.next(ch, style.font, style.size);
-		});
+		walk(text, metricBuilder);
 
-		return metricBuilder.result();
-	}
+		// walk(text, [&metricBuilder](wchar_t ch, Style style)
+		// {
+		// 	metricBuilder.next(ch, style.font, style.size);
+		// });
 
-	void TextBlock::walk(
-		std::wstring &text,
-		std::function<void(wchar_t, Style)> action)
-	{
-		std::stack<StyleRange> rangeStack;
-		rangeStack.push({
-			_options.baseStyle,
-			{ 0, static_cast<unsigned int>(text.size()) }
-		});
-		unsigned int nextRangeIndex = 0;
-
-		for (size_t i = 0; i < text.size(); i++)
-		{
-			if (nextRangeIndex < _options.styleRanges.size()
-				&& _options.styleRanges[nextRangeIndex].range.start == i)
-			{
-				rangeStack.push(_options.styleRanges[nextRangeIndex++]);
-			}
-
-			action(text[i], rangeStack.top().style);
-
-			while (!rangeStack.empty() &&rangeStack.top().range.last() <= i)
-			{
-				rangeStack.pop();
-			}
-		}
+		return metricBuilder.done();
 	}
 
 	TextBlock &TextBlock::operator=(TextBlock &&other)

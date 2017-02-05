@@ -20,7 +20,11 @@ namespace ct
 	FreeTypeSysContext::FreeTypeSysContext(FreeTypeOptions options) :
 		_options(options)
 	{
-		FT_Init_FreeType(&_library);
+		auto error = FT_Init_FreeType(&_library);
+		if (error)
+		{
+			std::cout << "failed to init freetype" << std::endl;
+		}
 	}
 
 	FreeTypeSysContext::~FreeTypeSysContext()
@@ -53,6 +57,7 @@ namespace ct
 		if (error)
 		{
 			_face = nullptr;
+			std::cout << "failed to load font '" << path << "'" << std::endl;
 		}
 	}
 
@@ -72,23 +77,80 @@ namespace ct
 
 	// FreeTypeMetricBuilder
 
-	FreeTypeMetricBuilder::FreeTypeMetricBuilder(FreeTypeSysContext &context) :
-		_context(context), _penX(0), _penY(0), _currentSize{ 0, 0 }
+	FreeTypeMetricBuilder::FreeTypeMetricBuilder(
+		FreeTypeSysContext &context,
+		Size maxSize) :
+		_context(context),
+		_penX(0),
+		_penY(0),
+		_currentWidth(0),
+		_maxSize(maxSize)
+	{ }
+
+	void FreeTypeMetricBuilder::onStyleChange(
+		FreeTypeFont *font, float size, Brush foreground)
 	{
-		_baselines.push_back(10);
+		std::cout << "font size: " << size << std::endl;
+		FT_Set_Char_Size(font->face(), 0, size*64.0, 100, 100);
 	}
 
-	void FreeTypeMetricBuilder::next(wchar_t ch, FreeTypeFont *font, float size)
+	void FreeTypeMetricBuilder::onChar(
+		wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
 	{
-		std::cout << "next" << std::endl;
-		_penX += 10;
-		_currentSize.width += 10;
-		_currentSize.height = 10;
+		auto face = font->face();
+		auto glyphIndex = FT_Get_Char_Index(face, ch);
+		FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
+		auto fontMetrics = face->size->metrics;
+		auto charMetrics = face->glyph->metrics;
+		auto charWidth = static_cast<int>(charMetrics.horiAdvance >> 6);
+		auto fontHeight = static_cast<int>(fontMetrics.height >> 6);
+
+		auto ax = face->glyph->advance.x >> 6;
+		auto ay = face->glyph->advance.y >> 6;
+
+		auto isFirstChar = _lines.empty();
+		auto isFirstCharOnThisLine = _penX == 0;
+		auto tooBigToFitOnThisLine = charWidth + _penX > _maxSize.width;
+
+		std::wcout << L"'" << ch << L"' " << charWidth << L"x" << fontHeight << " or " << ax << "," << ay << std::endl;
+
+		//std::cout << isFirstChar << "," << isFirstCharOnThisLine << ""
+
+		if (isFirstChar || (!isFirstCharOnThisLine && tooBigToFitOnThisLine))
+		{
+			std::cout << "new line" << std::endl;
+			_penX = 0;
+			if (!isFirstChar)
+			{
+				_penY += fontHeight;
+				_currentWidth = _maxSize.width;
+			}
+			_lines.push_back({ 0, 0 });
+		}
+
+		std::cout << "penX " << _penX << " -> ";
+
+		_penX += charWidth;
+
+		std::cout << _penX << std::endl;
+		auto endX = std::min(_maxSize.width, _penX - 1);
+		std::cout << "_currentWidth is max of " << _currentWidth << " and " << endX << std::endl;
+		_currentWidth = std::max(_currentWidth, endX);
+		auto &currentLine = _lines[_lines.size() - 1];
+		std::cout << "currentLine.height is max of " << currentLine.height << " and " << fontHeight << std::endl;
+		currentLine.height = std::max(currentLine.height, fontHeight);
+		currentLine.baseline = currentLine.height;
 	}
 
-	TextBlockMetrics FreeTypeMetricBuilder::result()
+	TextBlockMetrics FreeTypeMetricBuilder::done()
 	{
-		return { _currentSize, std::move(_baselines) };
+		int height = 0;
+		for (auto &metric : _lines)
+		{
+			height += metric.height;
+		}
+		std::cout << "RESULT " << _currentWidth << ", " << height << std::endl;
+		return { { _currentWidth, height }, std::move(_lines) };
 	}
 
 	// FreeTypeCharRenderer
@@ -102,7 +164,11 @@ namespace ct
 		_rect(rect)
 	{ }
 
-	void FreeTypeCharRenderer::next(
+	void FreeTypeCharRenderer::onStyleChange(
+		FreeTypeFont *font, float size, Brush foreground)
+	{ }
+
+	void FreeTypeCharRenderer::onChar(
 		wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
 	{
 		std::cout << "render char" << std::endl;

@@ -60,6 +60,7 @@ namespace ct
 		FreeTypeFont(FreeTypeFont &&other);
 		~FreeTypeFont();
 		bool isLoaded() { return _face != nullptr; }
+		FT_Face face() { return _face; }
 
 	private:
 		FT_Face _face;
@@ -68,18 +69,21 @@ namespace ct
 	class FreeTypeMetricBuilder
 	{
 	public:
-		FreeTypeMetricBuilder(FreeTypeSysContext &context);
+		FreeTypeMetricBuilder(FreeTypeSysContext &context, Size maxSize);
 		FreeTypeMetricBuilder(const FreeTypeMetricBuilder &) = delete;
 		FreeTypeMetricBuilder(FreeTypeMetricBuilder &&) = delete;
-		void next(wchar_t ch, FreeTypeFont *font, float size);
-		TextBlockMetrics result();
+		void onStyleChange(FreeTypeFont *font, float size, Brush foreground);
+		void onChar(
+			wchar_t ch, FreeTypeFont *font, float size, Brush foreground);
+		TextBlockMetrics done();
 
 	private:
 		FreeTypeSysContext &_context;
 		int _penX;
 		int _penY;
-		Size _currentSize;
-		std::vector<int> _baselines;
+		int _currentWidth;
+		std::vector<LineMetrics> _lines;
+		Size _maxSize;
 	};
 
 	class FreeTypeCharRenderer
@@ -91,7 +95,9 @@ namespace ct
 			Rect rect);
 		FreeTypeCharRenderer(const FreeTypeCharRenderer &) = delete;
 		FreeTypeCharRenderer(FreeTypeCharRenderer &&) = delete;
-		void next(wchar_t ch, FreeTypeFont *font, float size, Brush foreground);
+		void onStyleChange(FreeTypeFont *font, float size, Brush foreground);
+		void onChar(
+			wchar_t ch, FreeTypeFont *font, float size, Brush foreground);
 
 	private:
 		FreeTypeSysContext &_context;

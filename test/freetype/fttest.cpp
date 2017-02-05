@@ -4,7 +4,7 @@
 
 int test3()
 {
-	ct::FreeTypeOptions options({ 4096, 4096 }, 2);
+	ct::FreeTypeOptions options({ 256, 256 }, 2);
 	ct::TextManager manager(options);
 
 	ct::TFont font1 = manager.loadFont(
@@ -13,13 +13,13 @@ int test3()
 	ct::Style style1
 	{
 		&font1,
-		60.0f,
+		20.0f,
 		0x00ff00ff
 	};
 
 	std::vector<ct::TextBlock> blocks;
 
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"),
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Wi"),
 		ct::TextOptions::fromStyle(style1).withBackground({ 0x00000000 })));
 
 	std::string fileNameWithoutSuffix("C:\\temp\\_");

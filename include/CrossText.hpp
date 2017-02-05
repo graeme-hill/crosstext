@@ -3,6 +3,10 @@
 #include "Common.hpp"
 #include <functional>
 #include <unordered_map>
+#include <iostream>
+#include <algorithm>
+#include <stack>
+#include <vector>
 
 #ifdef OS_WINDOWS
 #include "DirectWrite.hpp"
@@ -265,6 +269,7 @@ namespace ct
 		Placement findPlacement(Size size);
 		void releaseRect(Texture *texture, Slot slot);
 		TFont loadFont(std::string path);
+		TOptions &options() { return _options; }
 
 		TSysContext &sysContext() { return _sysContext; }
 		std::vector<Texture> &textures() { return _textures; }
@@ -273,6 +278,7 @@ namespace ct
 		std::vector<Texture> _textures;
 		TSysContext _sysContext;
 		unsigned int _lastUsed;
+		TOptions _options;
 	};
 
 	class TextBlock
@@ -293,9 +299,10 @@ namespace ct
 	private:
 		TextBlockMetrics calcMetrics(std::wstring &text);
 		void render(std::wstring &text, Placement placement);
-		void walk(
-			std::wstring &text,
-			std::function<void(wchar_t, Style)> action);
+
+		template <typename THandler>
+		void walk(std::wstring &text, THandler &handler);
+
 		void dispose();
 		inline bool foundPlacement() { return _placement.texture != nullptr; };
 		inline bool dead() { return _manager == nullptr; }
@@ -304,4 +311,42 @@ namespace ct
 		TextOptions _options;
 		Placement _placement;
 	};
+
+	template <typename THandler>
+	void TextBlock::walk(std::wstring &text, THandler &handler)
+	{
+		std::stack<StyleRange> rangeStack;
+		rangeStack.push({
+			_options.baseStyle,
+			{ 0, static_cast<unsigned int>(text.size()) }
+		});
+		unsigned int nextRangeIndex = 0;
+
+		bool newStyle = true;
+		for (size_t i = 0; i < text.size(); i++)
+		{
+			if (nextRangeIndex < _options.styleRanges.size()
+				&& _options.styleRanges[nextRangeIndex].range.start == i)
+			{
+				rangeStack.push(_options.styleRanges[nextRangeIndex++]);
+				newStyle = true;
+			}
+
+			auto style = rangeStack.top().style;
+			if (newStyle)
+			{
+				handler.onStyleChange(style.font, style.size, style.foreground);
+			}
+
+			handler.onChar(text[i], style.font, style.size, style.foreground);
+
+			newStyle = false;
+
+			while (!rangeStack.empty() &&rangeStack.top().range.last() <= i)
+			{
+				rangeStack.pop();
+				newStyle = true;
+			}
+		}
+	}
 }

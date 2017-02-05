@@ -13,10 +13,16 @@ namespace ct
 		int height;
 	};
 
+	struct LineMetrics
+	{
+		int height;
+		int baseline;
+	};
+
 	struct TextBlockMetrics
 	{
 		Size size;
-		std::vector<int> baselines;
+		std::vector<LineMetrics> lines;
 	};
 
 	struct Rect
