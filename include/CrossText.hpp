@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Common.hpp"
 #include <functional>
 #include <unordered_map>
 #include <iostream>
@@ -8,39 +7,139 @@
 #include <stack>
 #include <vector>
 
-#ifdef OS_WINDOWS
-#include "DirectWrite.hpp"
-namespace ct
-{
-	typedef DirectWriteRenderOptions TRenderOptions;
-	typedef DirectWriteBuilder TBuilder;
-	typedef DirectWriteRenderer TRenderer;
-	typedef DirectWriteImageData TImageData;
-	typedef WindowsTimer TTimer;
-}
-#endif
-
-#ifdef OS_LINUX
-#include "FreeType.hpp"
-namespace ct
-{
-	typedef FreeTypeOptions TOptions;
-	typedef FreeTypeSysContext TSysContext;
-	typedef FreeTypeImageData TImageData;
-	typedef FreeTypeFont TFont;
-	typedef FreeTypeMetricBuilder TMetricBuilder;
-	typedef FreeTypeCharRenderer TCharRenderer;
-	typedef LinuxTimer TTimer;
-}
-#endif
-
-#define OPENING_MIN_HEIGHT 1.0f
-#define OPENING_MIN_WIDTH 1.0f
 #define SPACIAL_INDEX_BLOCK_WIDTH 128
 #define SPACIAL_INDED_BLOCK_HEIGHT 16
 
 namespace ct
 {
+	struct Size
+	{
+		int width;
+		int height;
+	};
+
+	struct LineMetrics
+	{
+		int height;
+		int baseline;
+	};
+
+	struct TextManagerOptions
+	{
+		Size textureSize;
+		int textureCount;
+	};
+
+	struct TextBlockMetrics
+	{
+		Size size;
+		std::vector<LineMetrics> lines;
+	};
+
+	struct Rect
+	{
+		int x;
+		int y;
+		int width;
+		int height;
+
+		inline int endX()
+		{
+			return x + width - 1;
+		}
+
+		inline int endY()
+		{
+			return y + height - 1;
+		}
+	};
+
+	struct Color
+	{
+		uint32_t rgba;
+
+		float redf()
+		{
+			return (rgba >> 24) / 255.0f;
+		}
+
+		float greenf()
+		{
+			return ((rgba & 0x00ff0000) >> 16) / 255.0f;
+		}
+
+		float bluef()
+		{
+			return ((rgba & 0x0000ff00) >> 8) / 255.0f;
+		}
+
+		float alphaf()
+		{
+			return (rgba & 0x000000ff) / 255.0f;
+		}
+	};
+
+	enum class FontWeight
+	{
+		Thin = 100,
+		ExtraLight = 200,
+		Light = 300,
+		SemiLight = 350,
+		Normal = 400,
+		Medium = 500,
+		SemiBold = 600,
+		Bold = 700,
+		ExtraBold = 800,
+		Black = 900,
+		ExtraBlack = 950
+	};
+
+	enum class FontStyle
+	{
+		Normal,
+		Oblique,
+		Italic
+	};
+
+	enum class FontStretch
+	{
+		Undefined,
+		UltraCondensed,
+		ExtraCondensed,
+		Condensed,
+		SemiCondensed,
+		Normal,
+		Medium,
+		SemiExpanded,
+		Expanded,
+		ExtraExpanded,
+		UltraExpanded
+	};
+
+	enum class AntialiasMode
+	{
+		None,
+		Grayscale,
+		SubPixel
+	};
+
+	struct Range
+	{
+		unsigned int start;
+		unsigned int length;
+
+		unsigned int last() const
+		{
+			return start + length - 1;
+		}
+	};
+
+	struct Brush
+	{
+		Color color;
+	};
+
+	template <typename TFont>
 	struct Style
 	{
 		TFont *font;
@@ -69,25 +168,27 @@ namespace ct
 		}
 	};
 
+	template <typename TFont>
 	struct StyleRange
 	{
-		Style style;
+		Style<TFont> style;
 		Range range;
 	};
 
+	template <typename TFont>
 	struct TextOptions
 	{
-		Style baseStyle;
+		Style<TFont> baseStyle;
 		AntialiasMode antialiasMode;
-		std::vector<StyleRange> styleRanges;
+		std::vector<StyleRange<TFont>> styleRanges;
 		Color background;
 
-		inline static TextOptions fromStyle(Style base)
+		inline static TextOptions fromStyle(Style<TFont> base)
 		{
 			return{ base, AntialiasMode::Grayscale, {}, 0x00000000 };
 		}
 
-		TextOptions withStyle(Style newBaseStyle)
+		TextOptions withStyle(Style<TFont> newBaseStyle)
 		{
 			TextOptions opts(*this);
 			opts.baseStyle = newBaseStyle;
@@ -101,7 +202,7 @@ namespace ct
 			return opts;
 		}
 
-		TextOptions withStyleRanges(std::vector<StyleRange> newRanges)
+		TextOptions withStyleRanges(std::vector<StyleRange<TFont>> newRanges)
 		{
 			TextOptions opts(*this);
 			opts.styleRanges = newRanges;
@@ -155,11 +256,17 @@ namespace ct
 
 		void remove(Slot slot);
 
-		bool withNearBlocks(Rect rect, std::function<bool(std::vector<uint64_t> &)> action);
+		bool withNearBlocks(
+			Rect rect,
+			std::function<bool(std::vector<uint64_t> &)> action);
 
-		bool withNearSlots(Rect rect, std::function<bool(uint64_t)> action);
+		bool withNearSlots(
+			Rect rect,
+			std::function<bool(uint64_t)> action);
 
-		bool withSlotsOnYLine(int y, std::function<bool(uint64_t)> action);
+		bool withSlotsOnYLine(
+			int y,
+			std::function<bool(uint64_t)> action);
 
 		bool withSlotsInBlockRange(
 			int leftColumn,
@@ -229,12 +336,21 @@ namespace ct
 		bool _moved;
 	};
 
+	template <typename TImageData>
 	class Texture
 	{
 	public:
-		Texture(TImageData imageData);
+		Texture(TImageData imageData) :
+			_imageData(std::move(imageData)), _organizer(imageData.size())
+		{ }
+
 		Texture(const Texture &) = delete;
-		Texture(Texture &&);
+
+		Texture(Texture &&other) :
+			_imageData(std::move(other._imageData)),
+			_organizer(std::move(other._organizer))
+		{ }
+
 		TImageData &imageData() { return _imageData; }
 		RectangleOrganizer &organizer() { return _organizer; }
 
@@ -243,110 +359,241 @@ namespace ct
 		RectangleOrganizer _organizer;
 	};
 
+	template <typename TImageData>
 	struct Placement
 	{
 		bool isFound;
 		Slot slot;
-		Texture *texture;
+		Texture<TImageData> *texture;
 
-		static inline Placement notFound()
+		static Placement notFound()
 		{
 			return{ false, {0}, nullptr };
 		}
 
-		static inline Placement found(Slot slot_, Texture *texture_)
+		static Placement found(Slot slot_, Texture<TImageData> *texture_)
 		{
 			return{ true, slot_, texture_ };
 		}
 	};
 
+	template <typename TSysContext, typename TImageData, typename TFont>
 	class TextManager
 	{
 	public:
-		TextManager(TOptions options);
+		TextManager(TextManagerOptions options) :
+			_sysContext(TSysContext(options)), _lastUsed(0), _options(options)
+		{
+			for (int i = 0; i < options.textureCount; i++)
+			{
+				_textures.push_back(Texture<TImageData>(
+					TImageData(_sysContext, options.textureSize)));
+			}
+		}
+
 		TextManager(const TextManager &) = delete;
 		TextManager(TextManager &&) = delete;
-		Placement findPlacement(Size size);
-		void releaseRect(Texture *texture, Slot slot);
-		TFont loadFont(std::string path);
-		TOptions &options() { return _options; }
+
+		Placement<TImageData> findPlacement(Size size)
+		{
+			auto firstResult = _textures[_lastUsed].organizer().tryClaimSlot(size);
+			if (firstResult.isFound)
+			{
+				return Placement<TImageData>::found(
+					firstResult.slot, &_textures.at(_lastUsed));
+			}
+
+			for (unsigned int i = 0; i < _textures.size(); i++)
+			{
+				if (i == _lastUsed)
+				{
+					continue;
+				}
+
+				auto result = _textures[i].organizer().tryClaimSlot(size);
+				if (result.isFound)
+				{
+					// found a place for the text block :)
+					_lastUsed = i;
+					return Placement<TImageData>::found(
+						result.slot, &_textures[i]);
+				}
+			}
+
+			// there is nowhere that can fit a text block of this size :(
+			return Placement<TImageData>::notFound();
+		}
+
+		void releaseRect(Texture<TImageData> *texture, Slot slot)
+		{
+			texture->organizer().releaseSlot(slot.index);
+		}
+
+		TFont loadFont(std::string path)
+		{
+			return TFont(path, _sysContext);
+		}
+
+		TextManagerOptions &options() { return _options; }
 
 		TSysContext &sysContext() { return _sysContext; }
-		std::vector<Texture> &textures() { return _textures; }
+		std::vector<Texture<TImageData>> &textures() { return _textures; }
 
 	private:
-		std::vector<Texture> _textures;
+		std::vector<Texture<TImageData>> _textures;
 		TSysContext _sysContext;
 		unsigned int _lastUsed;
-		TOptions _options;
+		TextManagerOptions _options;
 	};
 
+	template <
+		typename TSysContext,
+		typename TImageData,
+		typename TMetricBuilder,
+		typename TCharRenderer,
+		typename TFont>
 	class TextBlock
 	{
 	public:
 		TextBlock(
-			TextManager &manager,
+			TextManager<TSysContext, TImageData, TFont> &manager,
 			std::wstring text,
-			TextOptions options);
-
-		TextBlock(const TextBlock &) = delete;
-		TextBlock(TextBlock &&);
-		TextBlock &operator=(const TextBlock &other) = delete;
-		TextBlock &operator=(TextBlock &&other);
-		~TextBlock();
-		Texture *texture() { return _placement.texture; }
-
-	private:
-		TextBlockMetrics calcMetrics(std::wstring &text);
-		void render(std::wstring &text, Placement placement);
-
-		template <typename THandler>
-		void walk(std::wstring &text, THandler &handler);
-
-		void dispose();
-		inline bool foundPlacement() { return _placement.texture != nullptr; };
-		inline bool dead() { return _manager == nullptr; }
-
-		TextManager *_manager;
-		TextOptions _options;
-		Placement _placement;
-	};
-
-	template <typename THandler>
-	void TextBlock::walk(std::wstring &text, THandler &handler)
-	{
-		std::stack<StyleRange> rangeStack;
-		rangeStack.push({
-			_options.baseStyle,
-			{ 0, static_cast<unsigned int>(text.size()) }
-		});
-		unsigned int nextRangeIndex = 0;
-
-		bool newStyle = true;
-		for (size_t i = 0; i < text.size(); i++)
+			TextOptions<TFont> options) :
+			_manager(&manager),
+			_options(options),
+			_placement{0}
 		{
-			if (nextRangeIndex < _options.styleRanges.size()
-				&& _options.styleRanges[nextRangeIndex].range.start == i)
+			// Make sure ranges are not out of order
+			std::sort(
+				_options.styleRanges.begin(),
+				_options.styleRanges.end(),
+				[](StyleRange<TFont> a, StyleRange<TFont> b)
+				{
+					return a.range.start < b.range.start;
+				});
+
+			// Calculate how much space it will take up so we know where to fit it
+			TextBlockMetrics metrics = calcMetrics(text);
+			Size size = metrics.size;
+
+			// Find a spot (or not)
+			_placement = _manager->findPlacement(size);
+
+			// Render the characters to the texture if a spot was found`
+			if (_placement.isFound)
 			{
-				rangeStack.push(_options.styleRanges[nextRangeIndex++]);
-				newStyle = true;
-			}
-
-			auto style = rangeStack.top().style;
-			if (newStyle)
-			{
-				handler.onStyleChange(style.font, style.size, style.foreground);
-			}
-
-			handler.onChar(text[i], style.font, style.size, style.foreground);
-
-			newStyle = false;
-
-			while (!rangeStack.empty() &&rangeStack.top().range.last() <= i)
-			{
-				rangeStack.pop();
-				newStyle = true;
+				render(text, _placement);
 			}
 		}
-	}
+
+		TextBlock(const TextBlock &) = delete;
+
+		TextBlock(TextBlock &&other) :
+			_manager(other._manager),
+			_options(other._options),
+			_placement(other._placement)
+		{
+			other._manager = nullptr;
+		}
+
+		TextBlock &operator=(const TextBlock &other) = delete;
+
+		TextBlock &operator=(TextBlock &&other)
+		{
+			dispose();
+			_manager = other._manager;
+			_placement = other._placement;
+			_options = other._options;
+			other._manager = nullptr;
+			return *this;
+		}
+
+		~TextBlock()
+		{
+			dispose();
+		}
+
+		Texture<TImageData> *texture() { return _placement.texture; }
+
+	private:
+		TextBlockMetrics calcMetrics(std::wstring &text)
+		{
+			auto maxSize = _manager->options().textureSize;
+			TMetricBuilder metricBuilder(_manager->sysContext(), maxSize);
+
+			walk(text, metricBuilder);
+
+			return metricBuilder.done();
+		}
+
+		void render(std::wstring &text, Placement<TImageData> placement)
+		{
+			TCharRenderer charRenderer(
+				_manager->sysContext(),
+				placement.texture->imageData(),
+				placement.slot.rect);
+
+			walk(text, charRenderer);
+		}
+
+		template <typename THandler>
+		void walk(std::wstring &text, THandler &handler)
+		{
+			std::stack<StyleRange<TFont>> rangeStack;
+			rangeStack.push({
+				_options.baseStyle,
+				{ 0, static_cast<unsigned int>(text.size()) }
+			});
+			unsigned int nextRangeIndex = 0;
+
+			bool newStyle = true;
+			for (size_t i = 0; i < text.size(); i++)
+			{
+				if (nextRangeIndex < _options.styleRanges.size()
+					&& _options.styleRanges[nextRangeIndex].range.start == i)
+				{
+					rangeStack.push(_options.styleRanges[nextRangeIndex++]);
+					newStyle = true;
+				}
+
+				auto style = rangeStack.top().style;
+				if (newStyle)
+				{
+					handler.onStyleChange(style.font, style.size, style.foreground);
+				}
+
+				handler.onChar(text[i], style.font, style.size, style.foreground);
+
+				newStyle = false;
+
+				while (!rangeStack.empty() &&rangeStack.top().range.last() <= i)
+				{
+					rangeStack.pop();
+					newStyle = true;
+				}
+			}
+		}
+
+		void dispose()
+		{
+			if (!dead() && foundPlacement())
+			{
+				_manager->releaseRect(_placement.texture, _placement.slot);
+			}
+		}
+
+		bool foundPlacement()
+		{
+			return _placement.texture != nullptr;
+		};
+
+		bool dead()
+		{
+			return _manager == nullptr;
+		}
+
+		TextManager<TSysContext, TImageData, TFont> *_manager;
+		TextOptions<TFont> _options;
+		Placement<TImageData> _placement;
+	};
 }

@@ -3,21 +3,9 @@
 
 namespace ct
 {
-	// FreeTypeOptions
-
-	FreeTypeOptions::FreeTypeOptions() :
-		FreeTypeOptions(
-			{ DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE },
-			DEFAULT_TEXTURE_COUT)
-	{ }
-
-	FreeTypeOptions::FreeTypeOptions(Size textureSize, int textureCount) :
-		_textureSize(textureSize), _textureCount(textureCount)
-	{ }
-
 	// FreeTypeSysContext
 
-	FreeTypeSysContext::FreeTypeSysContext(FreeTypeOptions options) :
+	FreeTypeSysContext::FreeTypeSysContext(TextManagerOptions options) :
 		_options(options)
 	{
 		auto error = FT_Init_FreeType(&_library);

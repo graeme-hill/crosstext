@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.hpp"
+#include "CrossText.hpp"
 #include <string>
 #include <time.h>
 #include <png.h>
@@ -12,29 +12,16 @@
 
 namespace ct
 {
-	class FreeTypeOptions
-	{
-	public:
-		FreeTypeOptions();
-		FreeTypeOptions(Size textureSize, int textureCount);
-		Size textureSize() const { return _textureSize; }
-		int textureCount() const { return _textureCount; }
-
-	private:
-		Size _textureSize;
-		int _textureCount;
-	};
-
 	class FreeTypeSysContext
 	{
 	public:
-		FreeTypeSysContext(FreeTypeOptions options);
+		FreeTypeSysContext(TextManagerOptions options);
 		~FreeTypeSysContext();
-		Size textureSize() const { return _options.textureSize(); }
+		Size textureSize() const { return _options.textureSize; }
 		FT_Library library() { return _library; }
 
 	private:
-		FreeTypeOptions _options;
+		TextManagerOptions _options;
 		FT_Library _library;
 	};
 
