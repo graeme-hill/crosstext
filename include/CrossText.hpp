@@ -27,7 +27,6 @@ namespace ct
 	struct TextManagerOptions
 	{
 		Size textureSize;
-		int textureCount;
 	};
 
 	struct TextBlockMetrics
@@ -377,18 +376,30 @@ namespace ct
 		}
 	};
 
-	template <typename TSysContext, typename TImageData, typename TFont>
+	template <typename TText>
 	class TextManager
 	{
 	public:
-		TextManager(TextManagerOptions options) :
-			_sysContext(TSysContext(options)), _lastUsed(0), _options(options)
+		using TImageData = typename TText::ImageData;
+		using TSysContext = typename TText::SysContext;
+		using TFont = typename TText::Font;
+
+		TextManager(
+			TextManagerOptions options,
+			std::vector<typename TText::ImageData> textures) :
+			_sysContext(TSysContext(options)),
+			_lastUsed(0),
+			_options(options)
 		{
-			for (int i = 0; i < options.textureCount; i++)
+			for (auto &tex : textures)
 			{
-				_textures.push_back(Texture<TImageData>(
-					TImageData(_sysContext, options.textureSize)));
+				_textures.push_back(Texture<TImageData>(std::move(tex)));
 			}
+			// for (int i = 0; i < options.textureCount; i++)
+			// {
+			// 	_textures.push_back(Texture<TImageData>(
+			// 		TImageData(_sysContext, options.textureSize)));
+			// }
 		}
 
 		TextManager(const TextManager &) = delete;
@@ -396,7 +407,8 @@ namespace ct
 
 		Placement<TImageData> findPlacement(Size size)
 		{
-			auto firstResult = _textures[_lastUsed].organizer().tryClaimSlot(size);
+			auto &lastUsedTexture = _textures[_lastUsed];
+			auto firstResult = lastUsedTexture.organizer().tryClaimSlot(size);
 			if (firstResult.isFound)
 			{
 				return Placement<TImageData>::found(
@@ -440,23 +452,24 @@ namespace ct
 		std::vector<Texture<TImageData>> &textures() { return _textures; }
 
 	private:
+
 		std::vector<Texture<TImageData>> _textures;
 		TSysContext _sysContext;
 		unsigned int _lastUsed;
 		TextManagerOptions _options;
 	};
 
-	template <
-		typename TSysContext,
-		typename TImageData,
-		typename TMetricBuilder,
-		typename TCharRenderer,
-		typename TFont>
+	template <typename TText>
 	class TextBlock
 	{
 	public:
+		using TFont = typename TText::Font;
+		using TImageData = typename TText::ImageData;
+		using TMetricBuilder = typename TText::TMetricBuilder;
+		using TCharRenderer = typename TText::CharRenderer;
+
 		TextBlock(
-			TextManager<TSysContext, TImageData, TFont> &manager,
+			TextManager<TText> &manager,
 			std::wstring text,
 			TextOptions<TFont> options) :
 			_manager(&manager),
@@ -472,7 +485,7 @@ namespace ct
 					return a.range.start < b.range.start;
 				});
 
-			// Calculate how much space it will take up so we know where to fit it
+			// Calculate how much space it will take up so we know where it fits
 			TextBlockMetrics metrics = calcMetrics(text);
 			Size size = metrics.size;
 
@@ -592,8 +605,28 @@ namespace ct
 			return _manager == nullptr;
 		}
 
-		TextManager<TSysContext, TImageData, TFont> *_manager;
+		TextManager<TText> *_manager;
 		TextOptions<TFont> _options;
 		Placement<TImageData> _placement;
+	};
+
+	template <typename TTextSystem, typename TImageData>
+	class TextPlatform
+	{
+	public:
+		using ImageData = TImageData;
+		using Font = typename TTextSystem::Font;
+		using Manager = TextManager<TextPlatform<TTextSystem, TImageData>>;
+		using Block = TextBlock<TextPlatform<TTextSystem, TImageData>>;
+		using Style = ct::Style<Font>;
+		using Options = TextOptions<Font>;
+
+	private:
+		using SysContext = typename TTextSystem::SysContext;
+		using MetricBuilder = typename TTextSystem::MetricBuilder;
+		using CharRenderer = TTextSystem::CharRenderer<TImageData>;
+
+		friend class TextManager<TextPlatform<TTextSystem, TImageData>>;
+		friend class TextBlock<TextPlatform<TTextSystem, TImageData>>;
 	};
 }

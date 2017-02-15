@@ -143,22 +143,22 @@ namespace ct
 
 	// FreeTypeCharRenderer
 
-	FreeTypeCharRenderer::FreeTypeCharRenderer(
-		FreeTypeSysContext &context,
-		FreeTypeImageData &imageData,
-		Rect rect) :
-		_context(context),
-		_imageData(imageData),
-		_rect(rect)
-	{ }
-
-	void FreeTypeCharRenderer::onStyleChange(
-		FreeTypeFont *font, float size, Brush foreground)
-	{ }
-
-	void FreeTypeCharRenderer::onChar(
-		wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
-	{
-		std::cout << "render char" << std::endl;
-	}
+	// FreeTypeCharRenderer::FreeTypeCharRenderer(
+	// 	FreeTypeSysContext &context,
+	// 	FreeTypeImageData &imageData,
+	// 	Rect rect) :
+	// 	_context(context),
+	// 	_imageData(imageData),
+	// 	_rect(rect)
+	// { }
+	//
+	// void FreeTypeCharRenderer::onStyleChange(
+	// 	FreeTypeFont *font, float size, Brush foreground)
+	// { }
+	//
+	// void FreeTypeCharRenderer::onChar(
+	// 	wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
+	// {
+	// 	std::cout << "render char" << std::endl;
+	// }
 }

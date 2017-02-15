@@ -73,22 +73,36 @@ namespace ct
 		Size _maxSize;
 	};
 
+	template <typename TImageData>
 	class FreeTypeCharRenderer
 	{
 	public:
 		FreeTypeCharRenderer(
 			FreeTypeSysContext &context,
-			FreeTypeImageData &imageData,
-			Rect rect);
+			TImageData &imageData,
+			Rect rect) :
+			_context(context),
+			_imageData(imageData),
+			_rect(rect)
+		{ }
+
 		FreeTypeCharRenderer(const FreeTypeCharRenderer &) = delete;
+
 		FreeTypeCharRenderer(FreeTypeCharRenderer &&) = delete;
-		void onStyleChange(FreeTypeFont *font, float size, Brush foreground);
+
+		void onStyleChange(FreeTypeFont *font, float size, Brush foreground)
+		{ }
+
 		void onChar(
-			wchar_t ch, FreeTypeFont *font, float size, Brush foreground);
+			wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
+		{
+			std::cout << "onChar" << std::endl;
+			_imageData.write(std::vector<unsigned char>(), Rect());
+		}
 
 	private:
 		FreeTypeSysContext &_context;
-		FreeTypeImageData &_imageData;
+		TImageData &_imageData;
 		Rect _rect;
 	};
 
@@ -111,4 +125,22 @@ namespace ct
 	private:
 		struct timespec _start;
 	};
+
+	class FreeType
+	{
+		using SysContext = FreeTypeSysContext;
+
+		using MetricBuilder = FreeTypeMetricBuilder;
+
+		template<typename TImageData>
+		using CharRenderer = FreeTypeCharRenderer<TImageData>;
+
+		using Font = FreeTypeFont;
+	};
+
+	// typedefs to avoid ugly template syntax
+
+	// template <typename TImageData>
+	// using FreeTypeTextManager = TextManager<
+	// 	FreeTypeSysContext, TImageData, FreeTypeFont>;
 }

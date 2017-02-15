@@ -3,7 +3,10 @@ project(crosstext)
 
 include_directories(include)
 set(CMAKE_CXX_STANDARD 14)
-set(SOURCES src/CrossText.cpp src/FreeType.cpp test/freetype/fttest.cpp)
+set(SOURCES
+    src/CrossText.cpp
+    src/FreeType.cpp
+    test/freetype/fttest.cpp)
 add_definitions(-DOS_LINUX)
 add_executable(fttest ${SOURCES})
 
