@@ -37,7 +37,7 @@ Text::Style style1
 Text::Block
 */
 
-using Text = ct::TextPlatform<ct::FreeType, ct::LibPngWriter>;
+using Text = ct::TextPlatform<ct::FreeType<ct::LibPngWriter>>;
 
 int test3()
 {

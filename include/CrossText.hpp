@@ -395,11 +395,6 @@ namespace ct
 			{
 				_textures.push_back(Texture<TImageData>(std::move(tex)));
 			}
-			// for (int i = 0; i < options.textureCount; i++)
-			// {
-			// 	_textures.push_back(Texture<TImageData>(
-			// 		TImageData(_sysContext, options.textureSize)));
-			// }
 		}
 
 		TextManager(const TextManager &) = delete;
@@ -465,7 +460,7 @@ namespace ct
 	public:
 		using TFont = typename TText::Font;
 		using TImageData = typename TText::ImageData;
-		using TMetricBuilder = typename TText::TMetricBuilder;
+		using TMetricBuilder = typename TText::MetricBuilder;
 		using TCharRenderer = typename TText::CharRenderer;
 
 		TextBlock(
@@ -610,23 +605,23 @@ namespace ct
 		Placement<TImageData> _placement;
 	};
 
-	template <typename TTextSystem, typename TImageData>
+	template <typename TTextSystem>
 	class TextPlatform
 	{
 	public:
-		using ImageData = TImageData;
+		using ImageData = typename TTextSystem::ImageData;
 		using Font = typename TTextSystem::Font;
-		using Manager = TextManager<TextPlatform<TTextSystem, TImageData>>;
-		using Block = TextBlock<TextPlatform<TTextSystem, TImageData>>;
+		using Manager = TextManager<TextPlatform<TTextSystem>>;
+		using Block = TextBlock<TextPlatform<TTextSystem>>;
 		using Style = ct::Style<Font>;
 		using Options = TextOptions<Font>;
 
 	private:
 		using SysContext = typename TTextSystem::SysContext;
 		using MetricBuilder = typename TTextSystem::MetricBuilder;
-		using CharRenderer = TTextSystem::CharRenderer<TImageData>;
+		using CharRenderer = typename TTextSystem::CharRenderer;
 
-		friend class TextManager<TextPlatform<TTextSystem, TImageData>>;
-		friend class TextBlock<TextPlatform<TTextSystem, TImageData>>;
+		friend class TextManager<TextPlatform<TTextSystem>>;
+		friend class TextBlock<TextPlatform<TTextSystem>>;
 	};
 }

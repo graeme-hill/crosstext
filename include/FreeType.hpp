@@ -126,21 +126,14 @@ namespace ct
 		struct timespec _start;
 	};
 
+	template <typename TImageData>
 	class FreeType
 	{
+	public:
 		using SysContext = FreeTypeSysContext;
-
 		using MetricBuilder = FreeTypeMetricBuilder;
-
-		template<typename TImageData>
 		using CharRenderer = FreeTypeCharRenderer<TImageData>;
-
 		using Font = FreeTypeFont;
+		using ImageData = TImageData;
 	};
-
-	// typedefs to avoid ugly template syntax
-
-	// template <typename TImageData>
-	// using FreeTypeTextManager = TextManager<
-	// 	FreeTypeSysContext, TImageData, FreeTypeFont>;
 }
