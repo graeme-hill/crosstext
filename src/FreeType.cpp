@@ -31,11 +31,6 @@ namespace ct
 		_context(other._context), _size(other._size)
 	{ }
 
-	void FreeTypeImageData::savePng(std::string path)
-	{
-		std::cout << "save png to " << path << std::endl;
-	}
-
 	// FreeTypeFont
 
 	FreeTypeFont::FreeTypeFont(std::string path, FreeTypeSysContext &context) :
@@ -100,9 +95,8 @@ namespace ct
 		auto isFirstCharOnThisLine = _penX == 0;
 		auto tooBigToFitOnThisLine = charWidth + _penX > _maxSize.width;
 
-		std::wcout << L"'" << ch << L"' " << charWidth << L"x" << fontHeight << " or " << ax << "," << ay << std::endl;
-
-		//std::cout << isFirstChar << "," << isFirstCharOnThisLine << ""
+		std::wcout << L"'" << ch << L"' " << charWidth << L"x" << fontHeight
+			<< " or " << ax << "," << ay << std::endl;
 
 		if (isFirstChar || (!isFirstCharOnThisLine && tooBigToFitOnThisLine))
 		{
@@ -140,25 +134,4 @@ namespace ct
 		std::cout << "RESULT " << _currentWidth << ", " << height << std::endl;
 		return { { _currentWidth, height }, std::move(_lines) };
 	}
-
-	// FreeTypeCharRenderer
-
-	// FreeTypeCharRenderer::FreeTypeCharRenderer(
-	// 	FreeTypeSysContext &context,
-	// 	FreeTypeImageData &imageData,
-	// 	Rect rect) :
-	// 	_context(context),
-	// 	_imageData(imageData),
-	// 	_rect(rect)
-	// { }
-	//
-	// void FreeTypeCharRenderer::onStyleChange(
-	// 	FreeTypeFont *font, float size, Brush foreground)
-	// { }
-	//
-	// void FreeTypeCharRenderer::onChar(
-	// 	wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
-	// {
-	// 	std::cout << "render char" << std::endl;
-	// }
 }
