@@ -4,7 +4,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-void savePng(std::vector<unsigned char> &bytes, int width, int height)
+void savePng(std::vector<uint8_t> &bytes, int width, int height)
 {
 	FILE *file;
 
@@ -110,7 +110,7 @@ int run()
 
 	int texWidth = 600;
 	int texHeight = 600;
-	std::vector<unsigned char> imageBytes(texWidth * texHeight * 4, 0);
+	std::vector<uint8_t> imageBytes(texWidth * texHeight * 4, 0);
 	int penX = 0;
 	int penY = 100;
 	int r = 0;
@@ -118,7 +118,7 @@ int run()
 	int b = 255;
 	int a = 255;
 
-	unsigned char prev = 0;
+	uint8_t prev = 0;
 	for (auto character : text)
 	{
 		auto glyphIndex = FT_Get_Char_Index(face, character);
@@ -128,8 +128,8 @@ int run()
 
 		if (prev != 0)
 		{
-			error =
-				FT_Get_Kerning(face, prev, character, FT_KERNING_DEFAULT, &kerning);
+			error = FT_Get_Kerning(
+				face, prev, character, FT_KERNING_DEFAULT, &kerning);
 
 			if (error)
 			{

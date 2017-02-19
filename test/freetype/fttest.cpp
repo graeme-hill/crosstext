@@ -4,7 +4,7 @@
 
 /*
 TODO: FreeTypeMetricBuilder, FreeTypeCharRenderer, and FreeTypeFont are
-tightly coupled to FreeTypeSysContext so they should ne inner classes with
+tightly coupled to FreeTypeSysContext so infoPtrthey should ne inner classes with
 conventional names across platforms like ::MetricBuilder, ::CharRenderer, etc.
 so that they can just be accessed as TSysContext::MetricBuilder instead of
 having their own template parameters. The only type parameters that client code
@@ -41,8 +41,8 @@ using Text = ct::TextPlatform<ct::FreeType<ct::LibPngWriter>>;
 
 int test3()
 {
-	ct::LibPngWriter t1({256, 256});
-	ct::LibPngWriter t2({256, 256});
+	ct::LibPngWriter t1({256, 256}, "./one_");
+	ct::LibPngWriter t2({256, 256}, "./two_");
 
 	std::vector<ct::LibPngWriter> textureWriters;
 	textureWriters.push_back(std::move(t1));

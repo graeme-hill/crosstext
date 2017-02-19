@@ -116,10 +116,12 @@ namespace ct
 
 		std::cout << _penX << std::endl;
 		auto endX = std::min(_maxSize.width, _penX - 1);
-		std::cout << "_currentWidth is max of " << _currentWidth << " and " << endX << std::endl;
+		std::cout << "_currentWidth is max of " << _currentWidth << " and "
+			<< endX << std::endl;
 		_currentWidth = std::max(_currentWidth, endX);
 		auto &currentLine = _lines[_lines.size() - 1];
-		std::cout << "currentLine.height is max of " << currentLine.height << " and " << fontHeight << std::endl;
+		std::cout << "currentLine.height is max of " << currentLine.height
+			<< " and " << fontHeight << std::endl;
 		currentLine.height = std::max(currentLine.height, fontHeight);
 		currentLine.baseline = currentLine.height;
 	}

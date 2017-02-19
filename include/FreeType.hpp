@@ -81,6 +81,8 @@ namespace ct
 			FreeTypeSysContext &context,
 			TImageData &imageData,
 			Rect rect) :
+			_penX(0),
+			_penY(0),
 			_context(context),
 			_imageData(imageData),
 			_rect(rect)
@@ -96,11 +98,50 @@ namespace ct
 		void onChar(
 			wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
 		{
+			auto face = font->face();
+			auto glyphIndex = FT_Get_Char_Index(face, ch);
+			auto error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
+
+			if (error)
+			{
+				std::cout << "ERROR: failed to load glyph" << std::endl;
+			}
+
+			error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+
+			if (error)
+			{
+				std::cout << "ERROR: failed to render glyph" << std::endl;
+			}
+
+			int effectivePenY = _penY - face->glyph->bitmap_top;
+			int effectivePenX = _penX + face->glyph->bitmap_left;
+
+			uint8_t r = foreground.color.redByte();
+			uint8_t g = foreground.color.greenByte();
+			uint8_t b = foreground.color.blueByte();
+			uint8_t a = foreground.color.alphaByte();
+
+			auto bitmap = face->glyph->bitmap;
+			for (unsigned int y = 0; y < bitmap.rows; y++)
+			{
+				for (unsigned int x = 0; x < bitmap.width; x++)
+				{
+					int ftalpha = bitmap.buffer[y * bitmap.width + x];
+					float ftalphaf = static_cast<float>(ftalpha) / 255.0f;
+					int finalAlpha = static_cast<int>(
+						ftalphaf * static_cast<float>(a));
+					_imageData.setPixel(x, y, r, g, b, finalAlpha);
+				}
+			}
+
 			std::cout << "onChar" << std::endl;
-			_imageData.write(std::vector<unsigned char>(), Rect());
+			_imageData.write(std::vector<uint8_t>(), Rect());
 		}
 
 	private:
+		int _penX;
+		int _penY;
 		FreeTypeSysContext &_context;
 		TImageData &_imageData;
 		Rect _rect;

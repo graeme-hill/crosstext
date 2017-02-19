@@ -57,24 +57,44 @@ namespace ct
 	{
 		uint32_t rgba;
 
+		uint8_t redByte()
+		{
+			return static_cast<uint8_t>(rgba >> 24);
+		}
+
+		uint8_t greenByte()
+		{
+			return static_cast<uint8_t>((rgba & 0x00ff0000) >> 16);
+		}
+
+		uint8_t blueByte()
+		{
+			return static_cast<uint8_t>((rgba & 0x0000ff00) >> 0);
+		}
+
+		uint8_t alphaByte()
+		{
+			return static_cast<uint8_t>(rgba & 0x000000ff);
+		}
+
 		float redf()
 		{
-			return (rgba >> 24) / 255.0f;
+			return redByte() / 255.0f;
 		}
 
 		float greenf()
 		{
-			return ((rgba & 0x00ff0000) >> 16) / 255.0f;
+			return greenByte() / 255.0f;
 		}
 
 		float bluef()
 		{
-			return ((rgba & 0x0000ff00) >> 8) / 255.0f;
+			return blueByte() / 255.0f;
 		}
 
 		float alphaf()
 		{
-			return (rgba & 0x000000ff) / 255.0f;
+			return alphaByte() / 255.0f;
 		}
 	};
 
@@ -536,12 +556,17 @@ namespace ct
 
 		void render(std::wstring &text, Placement<TImageData> placement)
 		{
+			if (!placement.isFound)
+				return;
+
 			TCharRenderer charRenderer(
 				_manager->sysContext(),
 				placement.texture->imageData(),
 				placement.slot.rect);
 
 			walk(text, charRenderer);
+
+			placement.texture->imageData().commit();
 		}
 
 		template <typename THandler>
