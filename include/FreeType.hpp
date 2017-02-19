@@ -83,7 +83,6 @@ namespace ct
 			Rect rect,
 			TextBlockMetrics &metrics) :
 			_penX(rect.x),
-			_penY(rect.y),
 			_context(context),
 			_imageData(imageData),
 			_rect(rect),
@@ -126,7 +125,7 @@ namespace ct
 			auto lineMetrics = _metrics.lines[_row];
 
 			unsigned effectivePenY =
-				lineMetrics.baseline + face->glyph->bitmap_top;
+				lineMetrics.baseline - face->glyph->bitmap_top;
 			unsigned effectivePenX = _penX + face->glyph->bitmap_left;
 
 			auto bitmap = face->glyph->bitmap;
@@ -152,7 +151,6 @@ namespace ct
 			}
 
 			_penX += face->glyph->advance.x >> 6;
-			_penY += face->glyph->advance.y >> 6;
 
 			_column += 1;
 			if (lineMetrics.chars <= _column)
@@ -165,7 +163,6 @@ namespace ct
 
 	private:
 		unsigned _penX;
-		unsigned _penY;
 		FreeTypeSysContext &_context;
 		TImageData &_imageData;
 		Rect _rect;
