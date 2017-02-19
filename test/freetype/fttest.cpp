@@ -64,7 +64,7 @@ int test3()
 
 	std::vector<Text::Block> blocks;
 
-	std::wstring str(L"Wi");
+	std::wstring str(L"Hello my name is Graeme Hill.");
 	auto textOpt = Text::Options::fromStyle(style1)
 		.withBackground({ 0x00000000 });
 

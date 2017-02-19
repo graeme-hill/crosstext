@@ -114,7 +114,7 @@ namespace ct
 				std::cout << "ERROR: failed to render glyph" << std::endl;
 			}
 
-			int effectivePenY = _penY - face->glyph->bitmap_top;
+			int effectivePenY = _penY - face->glyph->bitmap_top + 100;
 			int effectivePenX = _penX + face->glyph->bitmap_left;
 
 			uint8_t r = foreground.color.redByte();
@@ -127,13 +127,19 @@ namespace ct
 			{
 				for (unsigned int x = 0; x < bitmap.width; x++)
 				{
+					auto realX = x + effectivePenX;
+					auto realY = y + effectivePenY;
+
 					int ftalpha = bitmap.buffer[y * bitmap.width + x];
 					float ftalphaf = static_cast<float>(ftalpha) / 255.0f;
 					int finalAlpha = static_cast<int>(
 						ftalphaf * static_cast<float>(a));
-					_imageData.setPixel(x, y, r, g, b, finalAlpha);
+					_imageData.setPixel(realX, realY, r, g, b, finalAlpha);
 				}
 			}
+
+			_penX += face->glyph->advance.x >> 6;
+			_penY += face->glyph->advance.y >> 6;
 
 			std::cout << "onChar" << std::endl;
 			_imageData.write(std::vector<uint8_t>(), Rect());
