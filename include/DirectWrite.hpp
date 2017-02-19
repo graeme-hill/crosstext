@@ -18,13 +18,13 @@ namespace ct
 	{
 	public:
 		DirectWriteRenderOptions();
-		DirectWriteRenderOptions(Size textureSize, int textureCount);
+		DirectWriteRenderOptions(Size textureSize, unsigned textureCount);
 		Size textureSize() const { return _textureSize; }
-		int textureCount() const { return _textureCount; }
+		unsigned textureCount() const { return _textureCount; }
 
 	private:
 		Size _textureSize;
-		int _textureCount;
+		unsigned _textureCount;
 	};
 
 	class DirectWriteRenderer

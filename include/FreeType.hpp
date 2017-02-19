@@ -66,9 +66,9 @@ namespace ct
 
 	private:
 		FreeTypeSysContext &_context;
-		int _penX;
-		int _penY;
-		int _currentWidth;
+		unsigned _penX;
+		unsigned _penY;
+		unsigned _currentWidth;
 		std::vector<LineMetrics> _lines;
 		Size _maxSize;
 	};
@@ -80,12 +80,16 @@ namespace ct
 		FreeTypeCharRenderer(
 			FreeTypeSysContext &context,
 			TImageData &imageData,
-			Rect rect) :
-			_penX(0),
-			_penY(0),
+			Rect rect,
+			TextBlockMetrics &metrics) :
+			_penX(rect.x),
+			_penY(rect.y),
 			_context(context),
 			_imageData(imageData),
-			_rect(rect)
+			_rect(rect),
+			_metrics(metrics),
+			_row(0),
+			_column(0)
 		{ }
 
 		FreeTypeCharRenderer(const FreeTypeCharRenderer &) = delete;
@@ -114,25 +118,34 @@ namespace ct
 				std::cout << "ERROR: failed to render glyph" << std::endl;
 			}
 
-			int effectivePenY = _penY - face->glyph->bitmap_top + 100;
-			int effectivePenX = _penX + face->glyph->bitmap_left;
-
 			uint8_t r = foreground.color.redByte();
 			uint8_t g = foreground.color.greenByte();
 			uint8_t b = foreground.color.blueByte();
 			uint8_t a = foreground.color.alphaByte();
 
+			auto lineMetrics = _metrics.lines[_row];
+
+			unsigned effectivePenY =
+				lineMetrics.baseline + face->glyph->bitmap_top;
+			unsigned effectivePenX = _penX + face->glyph->bitmap_left;
+
 			auto bitmap = face->glyph->bitmap;
-			for (unsigned int y = 0; y < bitmap.rows; y++)
+
+			auto maxWidth = std::min(
+				bitmap.width, _imageData.size().width - effectivePenX);
+			auto maxHeight = std::min(
+				bitmap.rows, _imageData.size().height - effectivePenY);
+
+			for (unsigned y = 0; y < maxHeight; y++)
 			{
-				for (unsigned int x = 0; x < bitmap.width; x++)
+				for (unsigned x = 0; x < maxWidth; x++)
 				{
 					auto realX = x + effectivePenX;
 					auto realY = y + effectivePenY;
 
-					int ftalpha = bitmap.buffer[y * bitmap.width + x];
-					float ftalphaf = static_cast<float>(ftalpha) / 255.0f;
-					int finalAlpha = static_cast<int>(
+					auto ftalpha = bitmap.buffer[y * bitmap.width + x];
+					auto ftalphaf = static_cast<float>(ftalpha) / 255.0f;
+					auto finalAlpha = static_cast<unsigned>(
 						ftalphaf * static_cast<float>(a));
 					_imageData.setPixel(realX, realY, r, g, b, finalAlpha);
 				}
@@ -141,16 +154,24 @@ namespace ct
 			_penX += face->glyph->advance.x >> 6;
 			_penY += face->glyph->advance.y >> 6;
 
-			std::cout << "onChar" << std::endl;
-			_imageData.write(std::vector<uint8_t>(), Rect());
+			_column += 1;
+			if (lineMetrics.chars <= _column)
+			{
+				_column = 0;
+				_row += 1;
+				_penX = _rect.x;
+			}
 		}
 
 	private:
-		int _penX;
-		int _penY;
+		unsigned _penX;
+		unsigned _penY;
 		FreeTypeSysContext &_context;
 		TImageData &_imageData;
 		Rect _rect;
+		TextBlockMetrics &_metrics;
+		unsigned _row;
+		unsigned _column;
 	};
 
 	class LinuxTimer

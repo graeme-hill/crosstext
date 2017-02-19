@@ -7,8 +7,11 @@ namespace ct
 		DirectWriteRenderOptions({ DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE }, DEFAULT_TEXTURE_COUNT)
 	{ }
 
-	DirectWriteRenderOptions::DirectWriteRenderOptions(Size textureSize, int textureCount) :
-		_textureSize(textureSize), _textureCount(textureCount)
+	DirectWriteRenderOptions::DirectWriteRenderOptions(
+		Size textureSize,
+		unsigned textureCount) :
+		_textureSize(textureSize),
+		_textureCount(textureCount)
 	{ }
 
 	DirectWriteRenderer::DirectWriteRenderer(DirectWriteRenderOptions options) :
@@ -178,7 +181,11 @@ namespace ct
 	{
 		DWRITE_TEXT_METRICS metrics;
 		_layout->GetMetrics(&metrics);
-		return{ (int)ceilf(metrics.width), (int)ceilf(metrics.height) };
+		return
+		{
+			static_cast<unsigned>(ceilf(metrics.width)),
+			static_cast<unsigned>(ceilf(metrics.height))
+		};
 	}
 
 	void DirectWriteBuilder::render(DirectWriteImageData &imageData, Rect rect)
@@ -240,8 +247,8 @@ namespace ct
 		_transparentBmp(nullptr)
 	{
 		renderer.wicFactory()->CreateBitmap(
-			(int)renderer.textureSize().width,
-			(int)renderer.textureSize().height,
+			renderer.textureSize().width,
+			renderer.textureSize().height,
 			GUID_WICPixelFormat32bppPRGBA,
 			WICBitmapCacheOnLoad,
 			&_bitmap);

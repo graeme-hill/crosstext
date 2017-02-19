@@ -23,7 +23,8 @@ namespace ct
 	void SpacialIndex::add(Slot slot)
 	{
 		auto slotIndex = slot.index;
-		withNearBlocks(slot.rect, [slotIndex](std::vector<uint64_t> &slots) -> bool {
+		withNearBlocks(slot.rect, [slotIndex](std::vector<uint64_t> &slots)
+		{
 			slots.push_back(slotIndex);
 			return false;
 		});
@@ -32,13 +33,17 @@ namespace ct
 	void SpacialIndex::remove(Slot slot)
 	{
 		auto slotIndex = slot.index;
-		withNearBlocks(slot.rect, [this, slotIndex](std::vector<uint64_t> &slots) -> bool {
+		withNearBlocks(
+			slot.rect,
+			[this, slotIndex](std::vector<uint64_t> &slots)
+		{
 			slots.erase(std::remove(slots.begin(), slots.end(), slotIndex));
 			return false;
 		});
 	}
 
-	bool SpacialIndex::withNearBlocks(Rect rect, std::function<bool(std::vector<uint64_t> &)> action)
+	bool SpacialIndex::withNearBlocks(
+		Rect rect, std::function<bool(std::vector<uint64_t> &)> action)
 	{
 		auto leftColumn = rect.x / _blockSize.width;
 		auto rightColumn = rect.endX() / _blockSize.width;
@@ -47,10 +52,14 @@ namespace ct
 		return withBlocksInRange(leftColumn, rightColumn, topRow, bottomRow, action);
 	}
 
-	bool SpacialIndex::withNearSlots(Rect rect, std::function<bool(uint64_t)> action)
+	bool SpacialIndex::withNearSlots(
+		Rect rect, std::function<bool(uint64_t)> action)
 	{
 		std::unordered_map<uint64_t, bool> usedSlots;
-		auto result = withNearBlocks(rect, [&usedSlots, &action](std::vector<uint64_t> &slots) {
+		auto result = withNearBlocks(
+			rect,
+			[&usedSlots, &action](std::vector<uint64_t> &slots)
+		{
 			for (auto slotIndex : slots)
 			{
 				if (usedSlots.find(slotIndex) == usedSlots.end())
@@ -68,22 +77,22 @@ namespace ct
 		return result;
 	}
 
-	bool SpacialIndex::withSlotsOnYLine(int y, std::function<bool(uint64_t)> action)
+	bool SpacialIndex::withSlotsOnYLine(
+		unsigned y, std::function<bool(uint64_t)> action)
 	{
-		//std::cout << "withSlotsOnYLine y=" << y << std::endl;
 		return withNearSlots({ 0, y, _blockSize.width * _xBlocks, 1 }, action);
 	}
 
 	bool SpacialIndex::withSlotsInBlockRange(
-		int leftColumn,
-		int rightColumn,
-		int topRow,
-		int bottomRow,
+		unsigned leftColumn,
+		unsigned rightColumn,
+		unsigned topRow,
+		unsigned bottomRow,
 		std::function<bool(uint64_t)> action)
 	{
-		for (int col = leftColumn; col <= rightColumn; col++)
+		for (auto col = leftColumn; col <= rightColumn; col++)
 		{
-			for (int row = topRow; row <= bottomRow; row++)
+			for (auto row = topRow; row <= bottomRow; row++)
 			{
 				auto index = row * _xBlocks + col;
 				for (auto &slotIndex : _data[index])
@@ -100,15 +109,15 @@ namespace ct
 	}
 
 	bool SpacialIndex::withBlocksInRange(
-		int leftColumn,
-		int rightColumn,
-		int topRow,
-		int bottomRow,
+		unsigned leftColumn,
+		unsigned rightColumn,
+		unsigned topRow,
+		unsigned bottomRow,
 		std::function<bool(std::vector<uint64_t> &)> action)
 	{
-		for (int col = leftColumn; col <= rightColumn; col++)
+		for (auto col = leftColumn; col <= rightColumn; col++)
 		{
-			for (int row = topRow; row <= bottomRow; row++)
+			for (auto row = topRow; row <= bottomRow; row++)
 			{
 				auto index = row * _xBlocks + col;
 				if (action(_data[index]))
@@ -121,7 +130,7 @@ namespace ct
 		return false;
 	}
 
-	int SpacialIndex::getBlockIndex(int x, int y)
+	unsigned SpacialIndex::getBlockIndex(unsigned x, unsigned y)
 	{
 		auto xBlock = x / _blockSize.width;
 		auto yBlock = y / _blockSize.height;
@@ -129,7 +138,8 @@ namespace ct
 		return yBlock * _xBlocks + xBlock;
 	}
 
-	int SpacialIndex::calcBlockCount(int totalSize, int blockSize)
+	unsigned SpacialIndex::calcBlockCount(
+		unsigned totalSize, unsigned blockSize)
 	{
 		auto wholeBlocks = totalSize / blockSize;
 		auto bonusBlocks = (totalSize - (wholeBlocks * blockSize)) > 0 ? 1 : 0;
@@ -140,7 +150,7 @@ namespace ct
 	 * YCache
 	 *************************************************************************/
 
-	YCache::YCache(int height) :
+	YCache::YCache(unsigned height) :
 		_yCounts(height, 0)
 	{
 		// Give y=0 value a head start because it's the first place to check
@@ -153,7 +163,7 @@ namespace ct
 		_yCountPriority(std::move(other._yCountPriority))
 	{ }
 
-	void YCache::increment(unsigned int y)
+	void YCache::increment(unsigned y)
 	{
 		if (y >= _yCounts.size())
 		{
@@ -169,7 +179,7 @@ namespace ct
 		}
 		else
 		{
-			for (unsigned int i = 0; i < _yCountPriority.size(); i++)
+			for (unsigned i = 0; i < _yCountPriority.size(); i++)
 			{
 				auto yCount = _yCountPriority[i];
 				if (yCount.y == y)
@@ -184,7 +194,7 @@ namespace ct
 		(*countRef)++;
 	}
 
-	void YCache::decrement(unsigned int y)
+	void YCache::decrement(unsigned y)
 	{
 		if (y >= _yCounts.size())
 		{
@@ -194,7 +204,7 @@ namespace ct
 		auto countRef = &_yCounts[y];
 		auto count = *countRef;
 
-		for (unsigned int i = 0; i < _yCountPriority.size(); i++)
+		for (unsigned i = 0; i < _yCountPriority.size(); i++)
 		{
 			auto yCount = _yCountPriority[i];
 			if (yCount.y == y)
@@ -217,7 +227,8 @@ namespace ct
 		(*countRef)--;
 	}
 
-	void YCache::withYValuesInPriorityOrder(std::function<bool(int y)> callback)
+	void YCache::withYValuesInPriorityOrder(
+		std::function<bool(unsigned y)> callback)
 	{
 		for (auto i = _yCountPriority.size(); i-- > 0;)
 		{
@@ -297,7 +308,7 @@ namespace ct
 		// try every usable y value in priority order
 		auto result = SlotSearchResult::notFound();
 		auto resultRef = &result;
-		_yCache.withYValuesInPriorityOrder([this, size, resultRef](int y)
+		_yCache.withYValuesInPriorityOrder([this, size, resultRef](unsigned y)
 		{
 			auto searchResult = search(y, size);
 			if (searchResult.isFound)
@@ -312,11 +323,11 @@ namespace ct
 		return result;
 	}
 
-	SlotSearchResult RectangleOrganizer::search(int y, Size size)
+	SlotSearchResult RectangleOrganizer::search(unsigned y, Size size)
 	{
 		auto result = SlotSearchResult::notFound();
 		auto pResult = &result;
-		withXOptions(y, [this, y, size, pResult](int x) -> bool
+		withXOptions(y, [this, y, size, pResult](unsigned x) -> bool
 		{
 			Rect rect{ x, y, size.width, size.height };
 			if (isRectOpen(rect))
@@ -383,14 +394,15 @@ namespace ct
 		return overlapsHorizontally && overlapsVertically;
 	}
 
-	void RectangleOrganizer::withXOptions(int y, std::function<bool(int)> callback)
+	void RectangleOrganizer::withXOptions(
+		unsigned y, std::function<bool(unsigned)> callback)
 	{
 		if (callback(0))
 		{
 			return;
 		}
 
-		_spacialIndex.withSlotsOnYLine(y, [this, callback](uint64_t slotIndex) -> bool
+		_spacialIndex.withSlotsOnYLine(y, [this, callback](uint64_t slotIndex)
 		{
 			auto slot = _slotMap[slotIndex];
 			if (slot.rect.x > 0 && callback(slot.rect.x))

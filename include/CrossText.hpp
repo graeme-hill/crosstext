@@ -14,14 +14,15 @@ namespace ct
 {
 	struct Size
 	{
-		int width;
-		int height;
+		unsigned width;
+		unsigned height;
 	};
 
 	struct LineMetrics
 	{
-		int height;
-		int baseline;
+		unsigned height;
+		unsigned baseline;
+		unsigned chars;
 	};
 
 	struct TextManagerOptions
@@ -37,17 +38,17 @@ namespace ct
 
 	struct Rect
 	{
-		int x;
-		int y;
-		int width;
-		int height;
+		unsigned x;
+		unsigned y;
+		unsigned width;
+		unsigned height;
 
-		inline int endX()
+		inline unsigned endX()
 		{
 			return x + width - 1;
 		}
 
-		inline int endY()
+		inline unsigned endY()
 		{
 			return y + height - 1;
 		}
@@ -144,10 +145,10 @@ namespace ct
 
 	struct Range
 	{
-		unsigned int start;
-		unsigned int length;
+		unsigned start;
+		unsigned length;
 
-		unsigned int last() const
+		unsigned last() const
 		{
 			return start + length - 1;
 		}
@@ -260,8 +261,8 @@ namespace ct
 
 	struct YCount
 	{
-		unsigned int y;
-		unsigned int *count;
+		unsigned y;
+		unsigned *count;
 	};
 
 	class SpacialIndex
@@ -284,45 +285,45 @@ namespace ct
 			std::function<bool(uint64_t)> action);
 
 		bool withSlotsOnYLine(
-			int y,
+			unsigned y,
 			std::function<bool(uint64_t)> action);
 
 		bool withSlotsInBlockRange(
-			int leftColumn,
-			int rightColumn,
-			int topRow,
-			int bottomRow,
+			unsigned leftColumn,
+			unsigned rightColumn,
+			unsigned topRow,
+			unsigned bottomRow,
 			std::function<bool(uint64_t)> action);
 
 		bool withBlocksInRange(
-			int leftColumn,
-			int rightColumn,
-			int topRow,
-			int bottomRow,
+			unsigned leftColumn,
+			unsigned rightColumn,
+			unsigned topRow,
+			unsigned bottomRow,
 			std::function<bool(std::vector<uint64_t> &)> action);
 
 	private:
 		Size _blockSize;
-		int _xBlocks;
-		int _yBlocks;
+		unsigned _xBlocks;
+		unsigned _yBlocks;
 		std::vector<std::vector<uint64_t>> _data;
 
-		int getBlockIndex(int x, int y);
-		static int calcBlockCount(int totalSize, int blockSize);
+		unsigned getBlockIndex(unsigned x, unsigned y);
+		static unsigned calcBlockCount(unsigned totalSize, unsigned blockSize);
 	};
 
 	class YCache
 	{
 	public:
-		YCache(int height);
+		YCache(unsigned height);
 		YCache(const YCache &other) = delete;
 		YCache(YCache &&other);
-		void increment(unsigned int y);
-		void decrement(unsigned int y);
-		void withYValuesInPriorityOrder(std::function<bool(int y)> callback);
+		void increment(unsigned y);
+		void decrement(unsigned y);
+		void withYValuesInPriorityOrder(std::function<bool(unsigned y)> callback);
 
 	private:
-		std::vector<unsigned int> _yCounts;
+		std::vector<unsigned> _yCounts;
 		std::vector<YCount> _yCountPriority;
 	};
 
@@ -337,9 +338,9 @@ namespace ct
 
 	private:
 		bool isRectOpen(Rect &rect);
-		void withXOptions(int y, std::function<bool(int)> callback);
+		void withXOptions(unsigned y, std::function<bool(unsigned)> callback);
 		bool checkOverlap(Rect a, Rect b);
-		SlotSearchResult search(int y, Size size);
+		SlotSearchResult search(unsigned y, Size size);
 		void addSlot(Slot slot);
 		void removeSlot(uint64_t slotIndex);
 		bool empty();
@@ -351,7 +352,7 @@ namespace ct
 		std::unordered_map<uint64_t, Slot> _slotMap;
 		SpacialIndex _spacialIndex;
 		YCache _yCache;
-		std::unordered_map<int, bool> _usedXOptions;
+		std::unordered_map<unsigned, bool> _usedXOptions;
 		bool _moved;
 	};
 
@@ -430,7 +431,7 @@ namespace ct
 					firstResult.slot, &_textures.at(_lastUsed));
 			}
 
-			for (unsigned int i = 0; i < _textures.size(); i++)
+			for (unsigned i = 0; i < _textures.size(); i++)
 			{
 				if (i == _lastUsed)
 				{
@@ -470,7 +471,7 @@ namespace ct
 
 		std::vector<Texture<TImageData>> _textures;
 		TSysContext _sysContext;
-		unsigned int _lastUsed;
+		unsigned _lastUsed;
 		TextManagerOptions _options;
 	};
 
@@ -510,7 +511,7 @@ namespace ct
 			// Render the characters to the texture if a spot was found`
 			if (_placement.isFound)
 			{
-				render(text, _placement);
+				render(text, _placement, metrics);
 			}
 		}
 
@@ -554,7 +555,10 @@ namespace ct
 			return metricBuilder.done();
 		}
 
-		void render(std::wstring &text, Placement<TImageData> placement)
+		void render(
+			std::wstring &text,
+			Placement<TImageData> placement,
+			TextBlockMetrics &metrics)
 		{
 			if (!placement.isFound)
 				return;
@@ -562,7 +566,8 @@ namespace ct
 			TCharRenderer charRenderer(
 				_manager->sysContext(),
 				placement.texture->imageData(),
-				placement.slot.rect);
+				placement.slot.rect,
+				metrics);
 
 			walk(text, charRenderer);
 
@@ -575,9 +580,9 @@ namespace ct
 			std::stack<StyleRange<TFont>> rangeStack;
 			rangeStack.push({
 				_options.baseStyle,
-				{ 0, static_cast<unsigned int>(text.size()) }
+				{ 0, static_cast<unsigned>(text.size()) }
 			});
-			unsigned int nextRangeIndex = 0;
+			unsigned nextRangeIndex = 0;
 
 			bool newStyle = true;
 			for (size_t i = 0; i < text.size(); i++)

@@ -29,12 +29,12 @@ namespace ct
 		void write(std::vector<uint8_t> pixels, Rect rect)
 		{
 			// call std::Copy once per line
-			for (int sourceRow = 0; sourceRow < rect.height; sourceRow++)
+			for (unsigned sourceRow = 0; sourceRow < rect.height; sourceRow++)
 			{
-				int destRow = rect.y + sourceRow;
-				int startSource = sourceRow * rect.width;
-				int startDest = destRow * _size.width + rect.x;
-				int bytesPerSourceRow = rect.width * 4;
+				auto destRow = rect.y + sourceRow;
+				auto startSource = sourceRow * rect.width;
+				auto startDest = destRow * _size.width + rect.x;
+				auto bytesPerSourceRow = rect.width * 4;
 
 				std::copy(
 					pixels.begin() + startSource,
@@ -61,9 +61,9 @@ namespace ct
 			png_write_info(pngPtr, infoPtr);
 
 			std::vector<png_byte> row(_size.width * 4, 0);
-			for (int y = 0; y < _size.height; y++)
+			for (unsigned y = 0; y < _size.height; y++)
 			{
-				for (int xByte = 0; xByte < _size.width * 4; xByte++)
+				for (unsigned xByte = 0; xByte < _size.width * 4; xByte++)
 				{
 					row[xByte] = _bytes[y * _size.width * 4 + xByte];
 				}
@@ -77,14 +77,19 @@ namespace ct
 		}
 
 		void setPixel(
-			int x,
-			int y,
+			unsigned x,
+			unsigned y,
 			uint8_t r,
 			uint8_t g,
 			uint8_t b,
 			uint8_t a)
 		{
-			int offset = (_size.width * y + x) * 4;
+			if (x >= _size.width)
+				return;
+			if (y >= _size.height)
+				return;
+
+			auto offset = (_size.width * y + x) * 4;
 			_bytes[offset + 0] = r;
 			_bytes[offset + 1] = g;
 			_bytes[offset + 2] = b;
@@ -97,6 +102,6 @@ namespace ct
 		Size _size;
 		std::vector<uint8_t> _bytes;
 		std::string _basePath;
-		int _frame;
+		unsigned _frame;
 	};
 }

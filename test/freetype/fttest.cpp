@@ -41,15 +41,15 @@ using Text = ct::TextPlatform<ct::FreeType<ct::LibPngWriter>>;
 
 int test3()
 {
-	ct::LibPngWriter t1({256, 256}, "./one_");
-	ct::LibPngWriter t2({256, 256}, "./two_");
+	ct::LibPngWriter t1({1024, 1024}, "./one_");
+	ct::LibPngWriter t2({1024, 1024}, "./two_");
 
 	std::vector<ct::LibPngWriter> textureWriters;
 	textureWriters.push_back(std::move(t1));
 	textureWriters.push_back(std::move(t2));
 
 	Text::Manager manager(
-		{ { 256, 256 } },
+		{ { 1024, 1024 } },
 		std::move(textureWriters));
 
 	auto font1 = manager.loadFont(
@@ -58,13 +58,13 @@ int test3()
 	Text::Style style1
 	{
 		&font1,
-		20.0f,
-		0x00ff00ff
+		100.0f,
+		0x000000ff
 	};
 
 	std::vector<Text::Block> blocks;
 
-	std::wstring str(L"Hello my name is Graeme Hill.");
+	std::wstring str(L"Oops I don't think these characters are quite lined up...");
 	auto textOpt = Text::Options::fromStyle(style1)
 		.withBackground({ 0x00000000 });
 

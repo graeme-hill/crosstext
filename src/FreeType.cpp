@@ -85,8 +85,8 @@ namespace ct
 		FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
 		auto fontMetrics = face->size->metrics;
 		auto charMetrics = face->glyph->metrics;
-		auto charWidth = static_cast<int>(charMetrics.horiAdvance >> 6);
-		auto fontHeight = static_cast<int>(fontMetrics.height >> 6);
+		auto charWidth = static_cast<unsigned>(charMetrics.horiAdvance >> 6);
+		auto fontHeight = static_cast<unsigned>(fontMetrics.height >> 6);
 
 		auto ax = face->glyph->advance.x >> 6;
 		auto ay = face->glyph->advance.y >> 6;
@@ -107,7 +107,7 @@ namespace ct
 				_penY += fontHeight;
 				_currentWidth = _maxSize.width;
 			}
-			_lines.push_back({ 0, 0 });
+			_lines.push_back({ 0, 0, 0 });
 		}
 
 		std::cout << "penX " << _penX << " -> ";
@@ -116,19 +116,21 @@ namespace ct
 
 		std::cout << _penX << std::endl;
 		auto endX = std::min(_maxSize.width, _penX - 1);
-		std::cout << "_currentWidth is max of " << _currentWidth << " and "
-			<< endX << std::endl;
 		_currentWidth = std::max(_currentWidth, endX);
 		auto &currentLine = _lines[_lines.size() - 1];
-		std::cout << "currentLine.height is max of " << currentLine.height
-			<< " and " << fontHeight << std::endl;
 		currentLine.height = std::max(currentLine.height, fontHeight);
-		currentLine.baseline = currentLine.height;
+
+		auto prevBaseline = _lines.size() <= 1
+			? 0
+			: _lines[_lines.size() - 2].baseline;
+
+		currentLine.baseline = currentLine.height + prevBaseline;
+		currentLine.chars += 1;
 	}
 
 	TextBlockMetrics FreeTypeMetricBuilder::done()
 	{
-		int height = 0;
+		unsigned height = 0;
 		for (auto &metric : _lines)
 		{
 			height += metric.height;
