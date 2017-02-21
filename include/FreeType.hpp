@@ -125,7 +125,7 @@ namespace ct
 			auto lineMetrics = _metrics.lines[_row];
 
 			unsigned effectivePenY =
-				lineMetrics.baseline - face->glyph->bitmap_top;
+				lineMetrics.baseline - face->glyph->bitmap_top + _rect.y;
 			unsigned effectivePenX = _penX + face->glyph->bitmap_left;
 
 			auto bitmap = face->glyph->bitmap;
