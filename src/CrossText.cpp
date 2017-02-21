@@ -293,7 +293,6 @@ namespace ct
 		// if it couldn't possibly fit then give up right away
 		if (size.width > _size.width || size.height > _size.height)
 		{
-			//std::cout << "cannot fit!" << std::endl;
 			return SlotSearchResult::notFound();
 		}
 

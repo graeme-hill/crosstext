@@ -73,7 +73,6 @@ namespace ct
 	void FreeTypeMetricBuilder::onStyleChange(
 		FreeTypeFont *font, float size, Brush foreground)
 	{
-		std::cout << "font size: " << size << std::endl;
 		FT_Set_Char_Size(font->face(), 0, size*64.0, 100, 100);
 	}
 
@@ -88,19 +87,12 @@ namespace ct
 		auto charWidth = static_cast<unsigned>(charMetrics.horiAdvance >> 6);
 		auto fontHeight = static_cast<unsigned>(fontMetrics.height >> 6);
 
-		auto ax = face->glyph->advance.x >> 6;
-		auto ay = face->glyph->advance.y >> 6;
-
 		auto isFirstChar = _lines.empty();
 		auto isFirstCharOnThisLine = _penX == 0;
 		auto tooBigToFitOnThisLine = charWidth + _penX > _maxSize.width;
 
-		std::wcout << L"'" << ch << L"' " << charWidth << L"x" << fontHeight
-			<< " or " << ax << "," << ay << std::endl;
-
 		if (isFirstChar || (!isFirstCharOnThisLine && tooBigToFitOnThisLine))
 		{
-			std::cout << "new line" << std::endl;
 			_penX = 0;
 			if (!isFirstChar)
 			{
@@ -110,11 +102,8 @@ namespace ct
 			_lines.push_back({ 0, 0, 0 });
 		}
 
-		std::cout << "penX " << _penX << " -> ";
-
 		_penX += charWidth;
 
-		std::cout << _penX << std::endl;
 		auto endX = std::min(_maxSize.width, _penX - 1);
 		_currentWidth = std::max(_currentWidth, endX);
 		auto &currentLine = _lines[_lines.size() - 1];
@@ -135,7 +124,7 @@ namespace ct
 		{
 			height += metric.height;
 		}
-		std::cout << "RESULT " << _currentWidth << ", " << height << std::endl;
+		std::cout << "size: " << _currentWidth << "," << height << std::endl;
 		return { { _currentWidth, height }, std::move(_lines) };
 	}
 }

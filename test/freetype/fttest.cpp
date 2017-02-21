@@ -58,19 +58,21 @@ int test3()
 	Text::Style style1
 	{
 		&font1,
-		100.0f,
+		40.0f,
 		0x000000ff
 	};
 
 	std::vector<Text::Block> blocks;
 
-	std::wstring str(L"Oops I don't think these characters are quite lined up...");
+	std::wstring str1(L"Oops I don't think these characters are quite lined up...");
+	std::wstring str2(L"ShortOne");
+	std::wstring str3(L"ShortTwo");
 	auto textOpt = Text::Options::fromStyle(style1)
 		.withBackground({ 0x00000000 });
 
-	Text::Block testBlock(manager, str, textOpt);
-
-	blocks.push_back(std::move(testBlock));
+	blocks.push_back(Text::Block(manager, str1, textOpt));
+	blocks.push_back(Text::Block(manager, str2, textOpt));
+	blocks.push_back(Text::Block(manager, str3, textOpt));
 
 	return 0;
 }

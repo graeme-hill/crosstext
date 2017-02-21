@@ -508,6 +508,12 @@ namespace ct
 			// Find a spot (or not)
 			_placement = _manager->findPlacement(size);
 
+			std::cout
+				<< "placement: " << _placement.slot.rect.x << ","
+				<< _placement.slot.rect.y << ","
+				<< _placement.slot.rect.width << ","
+				<< _placement.slot.rect.height << std::endl;
+
 			// Render the characters to the texture if a spot was found`
 			if (_placement.isFound)
 			{
