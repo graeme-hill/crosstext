@@ -62,66 +62,75 @@ int test3()
 		0x000000ff
 	};
 
+	Text::Style style2
+	{
+		&font1,
+		20.0f,
+		0xffff00ff
+	};
+
 	std::vector<Text::Block> blocks;
 
 	std::wstring str1(L"Oops I don't think these characters are quite lined up...");
 	std::wstring str2(L"ShortOne");
 	std::wstring str3(L"ShortTwo");
 	std::wstring str4(L"mini");
-	auto textOpt = Text::Options::fromStyle(style1)
-		.withBackground({ 0x00000000 });
+	auto textOpt1 = Text::Options::fromStyle(style1)
+		.withBackground({ 0x00000000 })
+		.withStyleRanges({ { style2, { 2, 2 } } });
+	auto textOpt2 = Text::Options::fromStyle(style2);
 
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str1, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str2, textOpt));
-	blocks.push_back(Text::Block(manager, str3, textOpt));
-	blocks.push_back(Text::Block(manager, str4, textOpt));
-	blocks.push_back(Text::Block(manager, str4, textOpt));
-	blocks.push_back(Text::Block(manager, str4, textOpt));
-	blocks.push_back(Text::Block(manager, str4, textOpt));
-	blocks.push_back(Text::Block(manager, str4, textOpt));
+	blocks.push_back(Text::Block(manager, str1, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt2));
+	blocks.push_back(Text::Block(manager, str3, textOpt2));
+	blocks.push_back(Text::Block(manager, str1, textOpt2));
+	blocks.push_back(Text::Block(manager, str2, textOpt2));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str1, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str1, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str1, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str1, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str1, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str1, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str2, textOpt1));
+	blocks.push_back(Text::Block(manager, str3, textOpt1));
+	blocks.push_back(Text::Block(manager, str4, textOpt1));
+	blocks.push_back(Text::Block(manager, str4, textOpt1));
+	blocks.push_back(Text::Block(manager, str4, textOpt1));
+	blocks.push_back(Text::Block(manager, str4, textOpt1));
+	blocks.push_back(Text::Block(manager, str4, textOpt1));
 
 	return 0;
 }

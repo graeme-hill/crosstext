@@ -96,7 +96,9 @@ namespace ct
 		FreeTypeCharRenderer(FreeTypeCharRenderer &&) = delete;
 
 		void onStyleChange(FreeTypeFont *font, float size, Brush foreground)
-		{ }
+		{
+			FT_Set_Char_Size(font->face(), 0, size*64.0, 100, 100);
+		}
 
 		void onChar(
 			wchar_t ch, FreeTypeFont *font, float size, Brush foreground)
