@@ -392,17 +392,24 @@ int test3()
 		ct::FontStretch::Normal,
 		40.0f,
 		L"en-US",
-		{ 0xff0000ff }
+		{ 0xffffffff }
 	};
 
 	std::vector<ct::TextBlock> blocks;
 
 	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"),
-		ct::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
+		ct::TextOptions::fromFont(font1)
+			.withBackground({ 0x000000ff })
+			.withAntialiasMode(ct::AntialiasMode::SubPixel)));
+
 	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Some other text"),
-		ct::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"blah blah"),
-		ct::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
+		ct::TextOptions::fromFont(font1.withForeground({ 0x000000ff }))
+			.withAntialiasMode(ct::AntialiasMode::Grayscale)));
+
+	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Aliased test! :-)"),
+		ct::TextOptions::fromFont(font1)
+		.withBackground({ 0x000000ff })
+		.withAntialiasMode(ct::AntialiasMode::None)));
 
 	std::wstring fileNameWithoutSuffix(L"C:\\temp\\_");
 	for (auto &texture : manager.textures())
