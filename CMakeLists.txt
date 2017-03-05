@@ -3,12 +3,19 @@ project(crosstext)
 
 include_directories(include)
 set(CMAKE_CXX_STANDARD 14)
+
+set(BASE_SOURCES src/CrossText.cpp)
+set(FREETYPE_SOURCES src/FreeType.cpp)
+set(CT_TEST_SOURCES test/unit/UnitTests.cpp)
+set(FT_TEST_SOURCES test/freetype/fttest.cpp)
+
 set(SOURCES
     src/CrossText.cpp
     src/FreeType.cpp
     test/freetype/fttest.cpp)
 add_definitions(-DOS_LINUX)
-add_executable(fttest ${SOURCES})
+add_executable(fttest ${BASE_SOURCES} ${FREETYPE_SOURCES} ${FT_TEST_SOURCES})
+add_executable(cttest ${BASE_SOURCES} ${CT_TEST_SOURCES})
 
 find_package (PNG)
 if (PNG_FOUND)

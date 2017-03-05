@@ -66,11 +66,7 @@ namespace ct
 
 	private:
 		FreeTypeSysContext &_context;
-		unsigned _penX;
-		unsigned _penY;
-		unsigned _currentWidth;
-		std::vector<LineMetrics> _lines;
-		Size _maxSize;
+		TextLayout _layout;
 	};
 
 	template <typename TImageData>

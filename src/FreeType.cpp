@@ -64,10 +64,7 @@ namespace ct
 		FreeTypeSysContext &context,
 		Size maxSize) :
 		_context(context),
-		_penX(0),
-		_penY(0),
-		_currentWidth(0),
-		_maxSize(maxSize)
+		_layout(maxSize)
 	{ }
 
 	void FreeTypeMetricBuilder::onStyleChange(
@@ -87,44 +84,11 @@ namespace ct
 		auto charWidth = static_cast<unsigned>(charMetrics.horiAdvance >> 6);
 		auto fontHeight = static_cast<unsigned>(fontMetrics.height >> 6);
 
-		auto isFirstChar = _lines.empty();
-		auto isFirstCharOnThisLine = _penX == 0;
-		auto tooBigToFitOnThisLine = charWidth + _penX > _maxSize.width;
-
-		if (isFirstChar || (!isFirstCharOnThisLine && tooBigToFitOnThisLine))
-		{
-			_penX = 0;
-			if (!isFirstChar)
-			{
-				_penY += fontHeight;
-				_currentWidth = _maxSize.width;
-			}
-			_lines.push_back({ 0, 0, 0 });
-		}
-
-		_penX += charWidth;
-
-		auto endX = std::min(_maxSize.width, _penX - 1);
-		_currentWidth = std::max(_currentWidth, endX);
-		auto &currentLine = _lines[_lines.size() - 1];
-		currentLine.height = std::max(currentLine.height, fontHeight);
-
-		auto prevBaseline = _lines.size() <= 1
-			? 0
-			: _lines[_lines.size() - 2].baseline;
-
-		currentLine.baseline = currentLine.height + prevBaseline;
-		currentLine.chars += 1;
+		_layout.nextChar(ch, { charWidth, fontHeight }, 0);
 	}
 
 	TextBlockMetrics FreeTypeMetricBuilder::done()
 	{
-		unsigned height = 0;
-		for (auto &metric : _lines)
-		{
-			height += metric.height;
-		}
-		std::cout << "size: " << _currentWidth << "," << height << std::endl;
-		return { { _currentWidth, height }, std::move(_lines) };
+		return _layout.metrics();
 	}
 }
