@@ -14,8 +14,11 @@ set(SOURCES
     src/FreeType.cpp
     test/freetype/fttest.cpp)
 add_definitions(-DOS_LINUX)
-add_executable(fttest ${BASE_SOURCES} ${FREETYPE_SOURCES} ${FT_TEST_SOURCES})
-add_executable(cttest ${BASE_SOURCES} ${CT_TEST_SOURCES})
+add_library(crosstext ${BASE_SOURCES} ${FREETYPE_SOURCES})
+add_executable(fttest ${FT_TEST_SOURCES})
+add_executable(cttest ${CT_TEST_SOURCES})
+target_link_libraries(fttest crosstext)
+target_link_libraries(cttest crosstext)
 
 find_package (PNG)
 if (PNG_FOUND)

@@ -678,7 +678,7 @@ private:
 	bool isWordBreak(wchar_t ch);
 	void startNewLine();
 	bool fitsOnThisLine(Size charSize, unsigned kerning);
-	void updateLine(Size charSize, unsigned kerning);
+	void updateLine(Size charSize, unsigned kerning, bool isWordBreak);
 	LineMetrics &currentLine();
 
 	Rect _rect;
@@ -694,6 +694,7 @@ private:
 	unsigned _currentUnfixedHeight;
 	unsigned _row;
 	unsigned _column;
+	bool _hasWordBreak;
 };
 
 END_NAMESPACE

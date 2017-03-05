@@ -427,7 +427,8 @@ TextLayout::TextLayout(Size maxSize) :
 	_currentUnfixedChars(0),
 	_currentUnfixedHeight(0),
 	_row(0),
-	_column(0)
+	_column(0),
+	_hasWordBreak(false)
 {
 	_lines.push_back({ 0, 0, 0 });
 }
@@ -436,13 +437,12 @@ void TextLayout::nextChar(wchar_t ch, Size charSize, unsigned kerning)
 {
 	auto thisCharIsWordBreak = isWordBreak(ch);
 	updateWordBreak(thisCharIsWordBreak, charSize.height);
-
 	if (!fitsOnThisLine(charSize, kerning) && !thisCharIsWordBreak)
 	{
+		_currentWidth = _maxSize.width;
 		startNewLine();
 	}
-
-	updateLine(charSize, kerning);
+	updateLine(charSize, kerning, thisCharIsWordBreak);
 }
 
 TextBlockMetrics TextLayout::metrics()
@@ -455,14 +455,18 @@ TextBlockMetrics TextLayout::metrics()
 	return { { _currentWidth, height }, _lines };
 }
 
-void TextLayout::updateLine(Size charSize, unsigned kerning)
+void TextLayout::updateLine(Size charSize, unsigned kerning, bool isWordBreak)
 {
 	auto &line = currentLine();
 	line.chars += 1;
 	line.height = std::max(line.height, charSize.height);
 	line.baseline = line.height;
 	_penX += charSize.width - kerning;
-	_currentWidth = std::max(_penX, _currentWidth);
+
+	if (!isWordBreak)
+	{
+		_currentWidth = std::max(_penX, _currentWidth);
+	}
 }
 
 void TextLayout::updateWordBreak(bool isBreakChar, unsigned height)
@@ -473,18 +477,33 @@ void TextLayout::updateWordBreak(bool isBreakChar, unsigned height)
 		_currentFixedChars = _currentFixedChars + _currentUnfixedChars;
 		_currentUnfixedChars = 0;
 		_currentUnfixedHeight = 0;
+		if (!_hasWordBreak)
+		{
+			_currentFixedChars += 1;
+			_hasWordBreak = true;
+		}
 	}
 	else
 	{
-		_currentUnfixedChars += 1;
-		_currentUnfixedHeight = std::max(_currentUnfixedHeight, height);
+		if (!_hasWordBreak)
+		{
+			_currentFixedChars += 1;
+			_currentFixedHeight = std::max(_currentFixedHeight, height);
+		}
+		else
+		{
+			_currentUnfixedChars += 1;
+			_currentUnfixedHeight = std::max(_currentUnfixedHeight, height);
+		}
 	}
 }
 
 void TextLayout::startNewLine()
 {
 	auto &line = currentLine();
-	auto charsToTransfer = line.chars - _currentFixedChars;
+	auto charsToTransfer = _hasWordBreak
+		? line.chars - _currentFixedChars
+		: line.chars - (_currentFixedChars - 1);
 	line.chars -= charsToTransfer;
 	line.baseline = _currentFixedHeight;
 
@@ -492,11 +511,12 @@ void TextLayout::startNewLine()
 		{
 			_currentUnfixedHeight,
 			_currentUnfixedHeight,
-			_currentUnfixedChars
+			_hasWordBreak ? _currentUnfixedChars - 1 : _currentUnfixedChars
 		});
 
 	_penY += line.height;
 	_penX = 0;
+	_hasWordBreak = false;
 }
 
 bool TextLayout::fitsOnThisLine(Size charSize, unsigned kerning)
