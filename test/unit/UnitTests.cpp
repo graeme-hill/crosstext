@@ -151,7 +151,7 @@ int main()
         applyChars(
             layout,
             L"xxx x   xxx xxxxx xxx xxxxx x xxxxxxxxxx         x",
-            //^           ^               ^            ^
+            //^           ^               ^              ^
             { 10, 10 },
             0);
         auto metrics = layout.metrics();
@@ -161,8 +161,8 @@ int main()
         assertEqual("line count", size_t{4}, metrics.lines.size());
         assertEqual("1st line char count", 12u, metrics.lines.at(0).chars);
         assertEqual("2nd line char count", 16u, metrics.lines.at(1).chars);
-        assertEqual("3rd line char count", 13u, metrics.lines.at(2).chars);
-        assertEqual("4th line char count", 9u, metrics.lines.at(3).chars);
+        assertEqual("3rd line char count", 15u, metrics.lines.at(2).chars);
+        assertEqual("4th line char count", 7u, metrics.lines.at(3).chars);
         assertEqual("1st line height", 10u, metrics.lines.at(0).height);
         assertEqual("2nd line height", 10u, metrics.lines.at(1).height);
         assertEqual("3rd line height", 10u, metrics.lines.at(2).height);
@@ -229,6 +229,30 @@ int main()
         assertEqual("6th line height", 10u, metrics.lines.at(5).height);
         assertEqual("7th line height", 10u, metrics.lines.at(6).height);
         assertEqual("8th line height", 10u, metrics.lines.at(7).height);
+    });
+
+    test("wrap word with leading whitespace", []()
+    {
+        TextLayout layout({ 105, 105 });
+        applyChars(
+            layout,
+            L"      hello            world",
+            //^     ^         ^      ^
+            { 10, 10 },
+            0);
+        auto metrics = layout.metrics();
+
+        assertEqual("width", 105u, metrics.size.width);
+        assertEqual("height", 40u, metrics.size.height);
+        assertEqual("line count", size_t{4}, metrics.lines.size());
+        assertEqual("1st line char count", 6u, metrics.lines.at(0).chars);
+        assertEqual("2nd line char count", 10u, metrics.lines.at(1).chars);
+        assertEqual("3rd line char count", 7u, metrics.lines.at(2).chars);
+        assertEqual("4th line char count", 5u, metrics.lines.at(3).chars);
+        assertEqual("1st line height", 10u, metrics.lines.at(0).height);
+        assertEqual("2nd line height", 10u, metrics.lines.at(1).height);
+        assertEqual("3rd line height", 10u, metrics.lines.at(2).height);
+        assertEqual("4th line height", 10u, metrics.lines.at(3).height);
     });
 
     return summary();

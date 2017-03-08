@@ -430,6 +430,7 @@ TextLayout::TextLayout(Size maxSize) :
 	_row(0),
 	_column(0),
 	_hasWordBreak(false),
+	_hasNonWordBreak(false),
 	_prevWasWordBreak(false)
 {
 	_lines.push_back({ 0, 0, 0 });
@@ -444,6 +445,7 @@ void TextLayout::printState()
 	}
 	std::cout << "| pnX: " << _penX;
 	std::cout << " | _crntFxdCrs: " << _currentFixedChars;
+	std::cout << " | _crntUnfxdCrs: " << _currentUnfixedChars;
 	std::cout << " | _prvWsWrdBrk: " << _prevWasWordBreak;
 	std::cout << " | _hsWrdBrk: " << _hasWordBreak;
 	std::cout << " | _fxdPnX: " << _fixedPenX;
@@ -489,7 +491,14 @@ void TextLayout::updateLine(Size charSize, unsigned kerning, bool isWordBreak)
 		_currentWidth = std::max(_penX, _currentWidth);
 	}
 
-	if ((isWordBreak && !_prevWasWordBreak) || !_hasWordBreak)
+	if (!isWordBreak && !_hasNonWordBreak)
+	{
+		_hasNonWordBreak = true;
+	}
+
+	if ((isWordBreak && !_prevWasWordBreak)
+		|| !_hasWordBreak
+		|| !_hasNonWordBreak)
 	{
 		_currentFixedChars = line.chars;
 		std::cout << "b";
@@ -499,7 +508,7 @@ void TextLayout::updateLine(Size charSize, unsigned kerning, bool isWordBreak)
 
 void TextLayout::updateWordBreak(bool isBreakChar, unsigned height)
 {
-	if (isBreakChar && !_prevWasWordBreak)
+	if (isBreakChar && !_prevWasWordBreak) // <-- not sure about this
 	{
 		auto &line = currentLine();
 		_currentFixedHeight = std::max(_currentFixedHeight, _currentUnfixedHeight);
@@ -521,6 +530,11 @@ void TextLayout::updateWordBreak(bool isBreakChar, unsigned height)
 			_currentUnfixedChars += 1;
 			_currentUnfixedHeight = std::max(_currentUnfixedHeight, height);
 		}
+
+		if (!isBreakChar && _prevWasWordBreak) // <-- not sure about this block
+		{
+			_currentUnfixedChars = 1;
+		}
 	}
 }
 
@@ -528,7 +542,8 @@ void TextLayout::startNewLine()
 {
 	auto &line = currentLine();
 	std::cout << "line.chars: " << line.chars << ", _currentFixedChars: "
-		<< _currentFixedChars << ", _fixedPenX: " << _fixedPenX << std::endl;
+		<< _currentFixedChars << ", _fixedPenX: " << _fixedPenX
+		<< ", _curentUnfixedChars: " << _currentUnfixedChars << std::endl;
 	auto charsToTransfer = line.chars - _currentFixedChars;
 	line.chars -= charsToTransfer;
 	line.baseline = _currentFixedHeight;
@@ -551,6 +566,7 @@ void TextLayout::startNewLine()
 	_penX = _penX - _fixedPenX;
 	_hasWordBreak = false;
 	_prevWasWordBreak = false;
+	_hasNonWordBreak = false;
 }
 
 bool TextLayout::fitsOnThisLine(Size charSize, unsigned kerning)

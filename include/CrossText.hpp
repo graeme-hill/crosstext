@@ -697,6 +697,7 @@ private:
 	unsigned _row;
 	unsigned _column;
 	bool _hasWordBreak;
+	bool _hasNonWordBreak;
 	bool _prevWasWordBreak;
 };
 
