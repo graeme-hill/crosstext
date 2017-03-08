@@ -420,6 +420,7 @@ void RectangleOrganizer::withXOptions(
 TextLayout::TextLayout(Size maxSize) :
 	_maxSize(maxSize),
 	_penX(0),
+	_fixedPenX(0),
 	_penY(0),
 	_currentWidth(0),
 	_currentFixedHeight(0),
@@ -428,21 +429,41 @@ TextLayout::TextLayout(Size maxSize) :
 	_currentUnfixedHeight(0),
 	_row(0),
 	_column(0),
-	_hasWordBreak(false)
+	_hasWordBreak(false),
+	_prevWasWordBreak(false)
 {
 	_lines.push_back({ 0, 0, 0 });
+}
+
+void TextLayout::printState()
+{
+	std::cout << "ln cnt: " << _lines.size() << " | lns: ";
+	for (auto &line : _lines)
+	{
+		std::cout << line.chars << "; ";
+	}
+	std::cout << "| pnX: " << _penX;
+	std::cout << " | _crntFxdCrs: " << _currentFixedChars;
+	std::cout << " | _prvWsWrdBrk: " << _prevWasWordBreak;
+	std::cout << " | _hsWrdBrk: " << _hasWordBreak;
+	std::cout << " | _fxdPnX: " << _fixedPenX;
+	std::cout << std::endl;
 }
 
 void TextLayout::nextChar(wchar_t ch, Size charSize, unsigned kerning)
 {
 	auto thisCharIsWordBreak = isWordBreak(ch);
 	updateWordBreak(thisCharIsWordBreak, charSize.height);
-	if (!fitsOnThisLine(charSize, kerning) && !thisCharIsWordBreak)
+	auto canWrap = !thisCharIsWordBreak || _prevWasWordBreak;
+	if (!fitsOnThisLine(charSize, kerning) && canWrap)
 	{
 		_currentWidth = _maxSize.width;
 		startNewLine();
 	}
 	updateLine(charSize, kerning, thisCharIsWordBreak);
+	std::wcout << L'\'' << ch << L'\'' << L" -> ";
+	printState();
+	_prevWasWordBreak = thisCharIsWordBreak;
 }
 
 TextBlockMetrics TextLayout::metrics()
@@ -467,27 +488,32 @@ void TextLayout::updateLine(Size charSize, unsigned kerning, bool isWordBreak)
 	{
 		_currentWidth = std::max(_penX, _currentWidth);
 	}
+
+	if ((isWordBreak && !_prevWasWordBreak) || !_hasWordBreak)
+	{
+		_currentFixedChars = line.chars;
+		std::cout << "b";
+		_fixedPenX = _penX;
+	}
 }
 
 void TextLayout::updateWordBreak(bool isBreakChar, unsigned height)
 {
-	if (isBreakChar)
+	if (isBreakChar && !_prevWasWordBreak)
 	{
+		auto &line = currentLine();
 		_currentFixedHeight = std::max(_currentFixedHeight, _currentUnfixedHeight);
-		_currentFixedChars = _currentFixedChars + _currentUnfixedChars;
+		_currentFixedChars = line.chars;
+		std::cout << "c";
+		_fixedPenX = _penX;
 		_currentUnfixedChars = 0;
 		_currentUnfixedHeight = 0;
-		if (!_hasWordBreak)
-		{
-			_currentFixedChars += 1;
-			_hasWordBreak = true;
-		}
+		_hasWordBreak = true;
 	}
 	else
 	{
 		if (!_hasWordBreak)
 		{
-			_currentFixedChars += 1;
 			_currentFixedHeight = std::max(_currentFixedHeight, height);
 		}
 		else
@@ -501,9 +527,9 @@ void TextLayout::updateWordBreak(bool isBreakChar, unsigned height)
 void TextLayout::startNewLine()
 {
 	auto &line = currentLine();
-	auto charsToTransfer = _hasWordBreak
-		? line.chars - _currentFixedChars
-		: line.chars - (_currentFixedChars - 1);
+	std::cout << "line.chars: " << line.chars << ", _currentFixedChars: "
+		<< _currentFixedChars << ", _fixedPenX: " << _fixedPenX << std::endl;
+	auto charsToTransfer = line.chars - _currentFixedChars;
 	line.chars -= charsToTransfer;
 	line.baseline = _currentFixedHeight;
 
@@ -514,9 +540,17 @@ void TextLayout::startNewLine()
 			_hasWordBreak ? _currentUnfixedChars - 1 : _currentUnfixedChars
 		});
 
+	auto newLine = currentLine();
+	std::cout << "startNewLine: prev chars="
+		<< line.chars << ", transferred: " << charsToTransfer
+		<< ", next chars: " << newLine.chars << std::endl;
+
+	_currentUnfixedChars = 0;
+	_currentFixedChars = newLine.chars;
 	_penY += line.height;
-	_penX = 0;
+	_penX = _penX - _fixedPenX;
 	_hasWordBreak = false;
+	_prevWasWordBreak = false;
 }
 
 bool TextLayout::fitsOnThisLine(Size charSize, unsigned kerning)

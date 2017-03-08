@@ -680,12 +680,14 @@ private:
 	bool fitsOnThisLine(Size charSize, unsigned kerning);
 	void updateLine(Size charSize, unsigned kerning, bool isWordBreak);
 	LineMetrics &currentLine();
+	void printState();
 
 	Rect _rect;
 	std::vector<LineMetrics> _lines;
 
 	Size _maxSize;
 	unsigned _penX;
+	unsigned _fixedPenX;
 	unsigned _penY;
 	unsigned _currentWidth;
 	unsigned _currentFixedHeight;
@@ -695,6 +697,7 @@ private:
 	unsigned _row;
 	unsigned _column;
 	bool _hasWordBreak;
+	bool _prevWasWordBreak;
 };
 
 END_NAMESPACE
