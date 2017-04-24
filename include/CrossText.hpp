@@ -664,6 +664,25 @@ private:
 	friend class TextBlock<TextPlatform<TTextSystem>>;
 };
 
+struct CharLayout
+{
+	wchar_t ch;
+	Size size;
+	unsigned line;
+};
+
+class TextLayout2
+{
+public:
+	TextLayout2(Size maxSize);
+	void nextChar(wchar_t ch, Size charSize, unsigned kerning);
+	TextBlockMetrics metrics();
+
+private:
+	Size _size;
+	std::vector<CharLayout> _chars;
+};
+
 class TextLayout
 {
 public:
@@ -697,7 +716,7 @@ private:
 	unsigned _row;
 	unsigned _column;
 	bool _hasWordBreak;
-	bool _hasNonWordBreak;
+	bool _has2NonWordBreak;
 	bool _prevWasWordBreak;
 };
 

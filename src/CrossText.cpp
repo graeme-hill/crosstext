@@ -417,6 +417,14 @@ void RectangleOrganizer::withXOptions(
 
 // TextLayout
 
+TextLayout2::TextLayout2(Size size) : _size(size)
+{ }
+
+void TextLayout2::nextChar(wchar_t ch, Size charSize, unsigned kerning)
+{
+	
+}
+
 TextLayout::TextLayout(Size maxSize) :
 	_maxSize(maxSize),
 	_penX(0),
