@@ -365,7 +365,7 @@ bool RectangleOrganizer::isRectOpen(Rect &rect)
 	bool foundOverlap = false;
 	bool *foundOverlapRef = &foundOverlap;
 	_spacialIndex.withNearSlots(
-		rect, [this, rect, foundOverlapRef](uint64_t slotIndex) ->
+		rect, [this, rect, foundOverlapRef](uint64_t slotIndex)
 		{
 			if (checkOverlap(rect, _slotMap[slotIndex].rect))
 			{
