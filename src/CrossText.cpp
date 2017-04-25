@@ -47,7 +47,8 @@ bool SpacialIndex::withNearBlocks(
 	auto rightColumn = rect.endX() / _blockSize.width;
 	auto topRow = rect.y / _blockSize.height;
 	auto bottomRow = rect.endY() / _blockSize.height;
-	return withBlocksInRange(leftColumn, rightColumn, topRow, bottomRow, action);
+	return withBlocksInRange(
+		leftColumn, rightColumn, topRow, bottomRow, action);
 }
 
 bool SpacialIndex::withNearSlots(
@@ -240,7 +241,8 @@ void YCache::withYValuesInPriorityOrder(
 RectangleOrganizer::RectangleOrganizer(Size size) :
 	_size(size),
 	_nextIndex(0),
-	_spacialIndex(size, { SPACIAL_INDEX_BLOCK_WIDTH, SPACIAL_INDED_BLOCK_HEIGHT }),
+	_spacialIndex(
+		size, { SPACIAL_INDEX_BLOCK_WIDTH, SPACIAL_INDED_BLOCK_HEIGHT }),
 	_yCache(size.height),
 	_moved(false)
 { }
@@ -352,7 +354,7 @@ bool RectangleOrganizer::isRectOpen(Rect &rect)
 		return false;
 	}
 
-	// if the rect would go off the edge of the texture space then it is not open
+	// if rect would go off the edge of the texture space then it is not open
 	if (rect.endX() >= _size.width || rect.endY() >= _size.height)
 	{
 		return false;
@@ -362,14 +364,16 @@ bool RectangleOrganizer::isRectOpen(Rect &rect)
 	// if the rect overlaps with any existing slot then it is not open
 	bool foundOverlap = false;
 	bool *foundOverlapRef = &foundOverlap;
-	_spacialIndex.withNearSlots(rect, [this, rect, foundOverlapRef](uint64_t slotIndex) -> bool {
-		if (checkOverlap(rect, _slotMap[slotIndex].rect))
+	_spacialIndex.withNearSlots(
+		rect, [this, rect, foundOverlapRef](uint64_t slotIndex) ->
 		{
-			*foundOverlapRef = true;
-			return true;
-		}
-		return false;
-	});
+			if (checkOverlap(rect, _slotMap[slotIndex].rect))
+			{
+				*foundOverlapRef = true;
+				return true;
+			}
+			return false;
+		});
 
 	return !foundOverlap;
 }
@@ -381,8 +385,10 @@ bool RectangleOrganizer::checkOverlap(Rect a, Rect b)
 	auto aStartsAfterBVertically = b.endY() < a.y;
 	auto bStartsAfterAVertically = a.endY() < b.y;
 
-	auto overlapsHorizontally = !aStartsAfterBHorizontally && !bStartsAfterAHorizontally;
-	auto overlapsVertically = !aStartsAfterBVertically && !bStartsAfterAVertically;
+	auto overlapsHorizontally =
+		!aStartsAfterBHorizontally && !bStartsAfterAHorizontally;
+	auto overlapsVertically =
+		!aStartsAfterBVertically && !bStartsAfterAVertically;
 
 	return overlapsHorizontally && overlapsVertically;
 }
@@ -422,7 +428,7 @@ TextLayout2::TextLayout2(Size size) : _size(size)
 
 void TextLayout2::nextChar(wchar_t ch, Size charSize, unsigned kerning)
 {
-	
+
 }
 
 TextLayout::TextLayout(Size maxSize) :
@@ -519,7 +525,8 @@ void TextLayout::updateWordBreak(bool isBreakChar, unsigned height)
 	if (isBreakChar && !_prevWasWordBreak) // <-- not sure about this
 	{
 		auto &line = currentLine();
-		_currentFixedHeight = std::max(_currentFixedHeight, _currentUnfixedHeight);
+		_currentFixedHeight = std::max(
+			_currentFixedHeight, _currentUnfixedHeight);
 		_currentFixedChars = line.chars;
 		std::cout << "c";
 		_fixedPenX = _penX;

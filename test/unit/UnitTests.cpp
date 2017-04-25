@@ -90,7 +90,7 @@ int main()
     test("one char", []()
     {
         TextLayout layout({ 100, 100 });
-        layout.nextChar(L'x', { 20, 30 }, 0);
+        layout.nextChar(L"x"[0], { 20, 30 }, 0);
         auto metrics = layout.metrics();
 
         assertEqual("width", 20u, metrics.size.width);
