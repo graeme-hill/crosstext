@@ -671,10 +671,10 @@ struct CharLayout
 	unsigned line;
 };
 
-class TextLayout2
+class TextLayout
 {
 public:
-	TextLayout2(Size maxSize);
+	TextLayout(Size maxSize);
 	void nextChar(wchar_t ch, Size charSize, unsigned kerning);
 	TextBlockMetrics metrics();
 
@@ -691,43 +691,6 @@ private:
 	unsigned _lastLine;
 	unsigned _penX;
 	unsigned _currentLine;
-};
-
-class TextLayout
-{
-public:
-	TextLayout(Size maxSize);
-
-	void nextChar(wchar_t ch, Size charSize, unsigned kerning);
-
-	TextBlockMetrics metrics();
-
-private:
-	void updateWordBreak(bool isBreakChar, unsigned height);
-	bool isWordBreak(wchar_t ch);
-	void startNewLine();
-	bool fitsOnThisLine(Size charSize, unsigned kerning);
-	void updateLine(Size charSize, unsigned kerning, bool isWordBreak);
-	LineMetrics &currentLine();
-	void printState();
-
-	Rect _rect;
-	std::vector<LineMetrics> _lines;
-
-	Size _maxSize;
-	unsigned _penX;
-	unsigned _fixedPenX;
-	unsigned _penY;
-	unsigned _currentWidth;
-	unsigned _currentFixedHeight;
-	unsigned _currentFixedChars;
-	unsigned _currentUnfixedChars;
-	unsigned _currentUnfixedHeight;
-	unsigned _row;
-	unsigned _column;
-	bool _hasWordBreak;
-	bool _hasNonWordBreak;
-	bool _prevWasWordBreak;
 };
 
 END_NAMESPACE
