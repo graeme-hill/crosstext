@@ -679,8 +679,18 @@ public:
 	TextBlockMetrics metrics();
 
 private:
+	void checkWrap(wchar_t ch);
+	void wrapLastWord();
+	bool isWhitespace(wchar_t ch);
+	bool isWordDivider(wchar_t ch);
+	bool isFirstCharOnLine(unsigned index);
+	unsigned getWrapCharCount();
+
 	Size _size;
 	std::vector<CharLayout> _chars;
+	unsigned _lastLine;
+	unsigned _penX;
+	unsigned _currentLine;
 };
 
 class TextLayout

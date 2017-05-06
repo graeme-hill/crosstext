@@ -423,12 +423,78 @@ void RectangleOrganizer::withXOptions(
 
 // TextLayout
 
-TextLayout2::TextLayout2(Size size) : _size(size)
+TextLayout2::TextLayout2(Size size) :
+	_size(size),
+	_lastLine(0),
+	_penX(0),
+	_currentLine(0)
 { }
 
 void TextLayout2::nextChar(wchar_t ch, Size charSize, unsigned kerning)
 {
+	_chars.push_back({ ch, charSize, _lastLine });
+	_penX += charSize.width;
+}
 
+void TextLayout2::checkWrap(wchar_t ch)
+{
+	unsigned index = _chars.size() - 1;
+	if (!isWhitespace(ch) && !isFirstCharOnLine(index) && _penX > _size.width)
+	{
+		wrapLastWord();
+	}
+}
+
+void TextLayout2::wrapLastWord()
+{
+	unsigned wordSize = getWrapCharCount();
+	_currentLine++;
+	_penX = 0;
+	for (unsigned i = _chars.size() - wordSize; i < _chars.size(); i++)
+	{
+		_chars[i].line = _currentLine;
+		_penX += _chars[i].size.width;
+	}
+}
+
+unsigned TextLayout2::getWrapCharCount()
+{
+	unsigned count = 1;
+	for (unsigned i = _chars.size() - 1; i > 0; i--)
+	{
+		if (isWordDivider(_chars[i].ch))
+		{
+			break;
+		}
+		else
+		{
+			count++;
+		}
+	}
+	return count;
+}
+
+bool TextLayout2::isFirstCharOnLine(unsigned index)
+{
+	if (index == 0)
+	{
+		return true;
+	}
+
+	auto thisCharLine = _chars[index].line;
+	auto lastCharLine = _chars[index - 1].line;
+
+	return thisCharLine > lastCharLine;
+}
+
+bool TextLayout2::isWhitespace(wchar_t ch)
+{
+	return ch == L" "[0] || ch == L"\t"[0];
+}
+
+bool TextLayout2::isWordDivider(wchar_t ch)
+{
+	return isWhitespace(ch) || ch == L"-"[0];
 }
 
 TextLayout::TextLayout(Size maxSize) :
