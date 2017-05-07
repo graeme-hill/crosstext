@@ -680,15 +680,16 @@ public:
 
 private:
 	void checkWrap(wchar_t ch);
-	void wrapLastWord();
+	void wrap();
+	void wrapFrom(unsigned index);
 	bool isWhitespace(wchar_t ch);
 	bool isWordDivider(wchar_t ch);
 	bool isFirstCharOnLine(unsigned index);
 	unsigned getWrapCharCount();
+	unsigned getEndOfLineWhitespaceCount();
 
 	Size _size;
 	std::vector<CharLayout> _chars;
-	unsigned _lastLine;
 	unsigned _penX;
 	unsigned _currentLine;
 };

@@ -426,15 +426,15 @@ void RectangleOrganizer::withXOptions(
 
 TextLayout::TextLayout(Size size) :
 	_size(size),
-	_lastLine(0),
 	_penX(0),
 	_currentLine(0)
 { }
 
 void TextLayout::nextChar(wchar_t ch, Size charSize, unsigned kerning)
 {
-	_chars.push_back({ ch, charSize, _lastLine });
+	_chars.push_back({ ch, charSize, _currentLine });
 	_penX += charSize.width;
+	checkWrap(ch);
 }
 
 TextBlockMetrics TextLayout::metrics()
@@ -442,7 +442,7 @@ TextBlockMetrics TextLayout::metrics()
 	TextBlockMetrics metrics
 	{
 		{ 0, 0 },
-		std::vector<LineMetrics>(_currentLine, { 0 })
+		std::vector<LineMetrics>(_currentLine + 1, { 0 })
 	};
 
 	unsigned totalWidth = 0;
@@ -468,18 +468,38 @@ TextBlockMetrics TextLayout::metrics()
 void TextLayout::checkWrap(wchar_t ch)
 {
 	unsigned index = _chars.size() - 1;
-	if (!isWhitespace(ch) && !isFirstCharOnLine(index) && _penX > _size.width)
+	if (!isFirstCharOnLine(index) && _penX > _size.width)
 	{
-		wrapLastWord();
+		wrap();
 	}
 }
 
-void TextLayout::wrapLastWord()
+void TextLayout::wrap()
 {
 	unsigned wordSize = getWrapCharCount();
+
+	if (wordSize == 0)
+	{
+		return;
+	}
+
+	unsigned firstCharIndex = _chars.size() - wordSize;
+
+	if (isFirstCharOnLine(firstCharIndex))
+	{
+		wrapFrom(_chars.size() - 1);
+	}
+	else
+	{
+		wrapFrom(_chars.size() - wordSize);
+	}
+}
+
+void TextLayout::wrapFrom(unsigned index)
+{
 	_currentLine++;
 	_penX = 0;
-	for (unsigned i = _chars.size() - wordSize; i < _chars.size(); i++)
+	for (unsigned i = index; i < _chars.size(); i++)
 	{
 		_chars[i].line = _currentLine;
 		_penX += _chars[i].size.width;
@@ -488,10 +508,29 @@ void TextLayout::wrapLastWord()
 
 unsigned TextLayout::getWrapCharCount()
 {
-	unsigned count = 1;
-	for (unsigned i = _chars.size() - 1; i > 0; i--)
+	unsigned trailingWhitespaceChars = getEndOfLineWhitespaceCount();
+	if (trailingWhitespaceChars == 1)
 	{
-		if (isWordDivider(_chars[i].ch))
+		return 0;
+	}
+	else if (trailingWhitespaceChars > 1)
+	{
+		return 1;
+	}
+
+	unsigned count = 0;
+	for (unsigned i = _chars.size(); i > 0; i--)
+	{
+		unsigned index = i - 1;
+
+		if (index > 0 && _chars[index].line > _chars[index - 1].line)
+		{
+			count++;
+			break;
+		}
+
+		bool isDivider = isWordDivider(_chars[index].ch);
+		if (isDivider)
 		{
 			break;
 		}
@@ -500,6 +539,23 @@ unsigned TextLayout::getWrapCharCount()
 			count++;
 		}
 	}
+
+	return count;
+}
+
+unsigned TextLayout::getEndOfLineWhitespaceCount()
+{
+	unsigned count = 0;
+	unsigned index = _chars.size() - 1;
+	do
+	{
+		if (!isWordDivider(_chars[index].ch))
+		{
+			break;
+		}
+		count++;
+	} while (--index > 0);
+
 	return count;
 }
 
@@ -518,12 +574,12 @@ bool TextLayout::isFirstCharOnLine(unsigned index)
 
 bool TextLayout::isWhitespace(wchar_t ch)
 {
-	return ch == L" "[0] || ch == L"\t"[0];
+	return ch == ' ' || ch == '\t';
 }
 
 bool TextLayout::isWordDivider(wchar_t ch)
 {
-	return isWhitespace(ch) || ch == L"-"[0];
+	return isWhitespace(ch) || ch == '-';
 }
 
 END_NAMESPACE

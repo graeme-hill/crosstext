@@ -185,16 +185,16 @@ int main()
 		assertEqual("line count", size_t{7}, metrics.lines.size());
 		assertEqual("1st line char count", 6u, metrics.lines.at(0).chars);
 		assertEqual("2nd line char count", 11u, metrics.lines.at(1).chars);
-		assertEqual("3st line char count", 5u, metrics.lines.at(2).chars);
+		assertEqual("3rd line char count", 5u, metrics.lines.at(2).chars);
 		assertEqual("4nd line char count", 10u, metrics.lines.at(3).chars);
-		assertEqual("5st line char count", 10u, metrics.lines.at(4).chars);
+		assertEqual("5th line char count", 10u, metrics.lines.at(4).chars);
 		assertEqual("6nd line char count", 10u, metrics.lines.at(5).chars);
 		assertEqual("7st line char count", 10u, metrics.lines.at(6).chars);
 		assertEqual("1st line height", 10u, metrics.lines.at(0).height);
 		assertEqual("2nd line height", 10u, metrics.lines.at(1).height);
-		assertEqual("3st line height", 10u, metrics.lines.at(2).height);
+		assertEqual("3rd line height", 10u, metrics.lines.at(2).height);
 		assertEqual("4nd line height", 10u, metrics.lines.at(3).height);
-		assertEqual("5st line height", 10u, metrics.lines.at(4).height);
+		assertEqual("5sh line height", 10u, metrics.lines.at(4).height);
 		assertEqual("6nd line height", 10u, metrics.lines.at(5).height);
 		assertEqual("7st line height", 10u, metrics.lines.at(6).height);
 	});
@@ -205,22 +205,21 @@ int main()
 		applyChars(
 			layout,
 			L"hello world this is a                                  word :-)",
-			//^     ^          ^    ^         ^         ^         ^       ^
+			//^     ^          ^         ^         ^         ^       ^
 			{ 10, 10 },
 			0);
 		auto metrics = layout.metrics();
 
 		assertEqual("width", 105u, metrics.size.width);
-		assertEqual("height", 80u, metrics.size.height);
-		assertEqual("line count", size_t{8}, metrics.lines.size());
+		assertEqual("height", 70u, metrics.size.height);
+		assertEqual("line count", size_t{7}, metrics.lines.size());
 		assertEqual("1st line char count", 6u, metrics.lines.at(0).chars);
 		assertEqual("2nd line char count", 11u, metrics.lines.at(1).chars);
-		assertEqual("3rd line char count", 5u, metrics.lines.at(2).chars);
+		assertEqual("3rd line char count", 10u, metrics.lines.at(2).chars);
 		assertEqual("4th line char count", 10u, metrics.lines.at(3).chars);
 		assertEqual("5th line char count", 10u, metrics.lines.at(4).chars);
-		assertEqual("6th line char count", 10u, metrics.lines.at(5).chars);
+		assertEqual("6th line char count", 8u, metrics.lines.at(5).chars);
 		assertEqual("7th line char count", 8u, metrics.lines.at(6).chars);
-		assertEqual("8th line char count", 3u, metrics.lines.at(7).chars);
 		assertEqual("1st line height", 10u, metrics.lines.at(0).height);
 		assertEqual("2nd line height", 10u, metrics.lines.at(1).height);
 		assertEqual("3rd line height", 10u, metrics.lines.at(2).height);
@@ -228,7 +227,6 @@ int main()
 		assertEqual("5th line height", 10u, metrics.lines.at(4).height);
 		assertEqual("6th line height", 10u, metrics.lines.at(5).height);
 		assertEqual("7th line height", 10u, metrics.lines.at(6).height);
-		assertEqual("8th line height", 10u, metrics.lines.at(7).height);
 	});
 
 	test("wrap word with leading whitespace", []()
