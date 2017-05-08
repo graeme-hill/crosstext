@@ -3,6 +3,23 @@
 
 BEGIN_NAMESPACE
 
+// Rect
+
+std::ostream &operator<<(std::ostream &out, const Rect &rect)
+{
+	out << "(" << rect.x << "," << rect.y << "," << rect.width << ","
+		<< rect.height << ")";
+	return out;
+}
+
+// Slot
+
+std::ostream &operator<<(std::ostream &out, const Slot &slot)
+{
+	out << "(" << slot.rect << "," << slot.index << ")";
+	return out;
+}
+
 // SpacialIndex
 
 SpacialIndex::SpacialIndex(Size size, Size blockSize) :
@@ -287,6 +304,12 @@ bool RectangleOrganizer::empty()
 
 SlotSearchResult RectangleOrganizer::tryClaimSlot(Size size)
 {
+	// if height or width is zero then it isn't even valid so give up
+	if (size.height <= 0 || size.width <= 0)
+	{
+		return SlotSearchResult::notFound();
+	}
+
 	// if it couldn't possibly fit then give up right away
 	if (size.width > _size.width || size.height > _size.height)
 	{

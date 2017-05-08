@@ -253,5 +253,103 @@ int main()
 		assertEqual("4th line height", 10u, metrics.lines.at(3).height);
 	});
 
+	// RectangleOrganizer
+
+	test("RectangleOrganizer zero size tests", []()
+	{
+		RectangleOrganizer org{{100, 100}};
+		auto c1 = org.tryClaimSlot({ 0, 10 });
+		auto c2 = org.tryClaimSlot({ 10, 0 });
+		auto c3 = org.tryClaimSlot({ 0, 0 });
+		assertEqual("no width not found", false, c1.isFound);
+		assertEqual("no height not found", false, c2.isFound);
+		assertEqual("no width or height not found", false, c3.isFound);
+	});
+
+	test("RectangleOrganizer additive positioning", []()
+	{
+		RectangleOrganizer org{{100, 100}};
+		auto c1 = org.tryClaimSlot({ 10, 10 });
+		assertEqual("1st found", true, c1.isFound);
+		assertEqual("1st rect", { 0, 0, 10, 10 }, c1.slot.rect);
+
+		auto c2 = org.tryClaimSlot({ 95, 95 });
+		assertEqual("2nd too big for remaining space", false, c2.isFound);
+		assertEqual("unfound has zeroed slot", { 0 }, c2.slot);
+
+		auto c3 = org.tryClaimSlot({ 10, 10 });
+		assertEqual("3rd rect", { 10, 0, 10, 10 }, c3.slot.rect);
+
+		auto c4 = org.tryClaimSlot({ 81, 20 });
+		assertEqual("4th rect", { 0, 10, 81, 20 }, c4.slot.rect);
+
+		auto c5 = org.tryClaimSlot({ 5, 5 });
+		assertEqual("5th rect", { 81, 10, 5, 5 }, c5.slot.rect);
+
+		auto c6 = org.tryClaimSlot({ 10, 20 });
+		assertEqual("6th rect", { 86, 10, 10, 20 }, c6.slot.rect);
+
+		auto c7 = org.tryClaimSlot({ 100, 70 });
+		assertEqual("7th rect", { 0, 30, 100, 70 }, c7.slot.rect);
+
+		auto c8 = org.tryClaimSlot({ 80, 10 });
+		assertEqual("8th rect", { 20, 0, 80, 10 }, c8.slot.rect);
+	});
+
+	test("RectangleOrganizer adding and removing", []()
+	{
+		RectangleOrganizer org{{100, 100}};
+		auto c1 = org.tryClaimSlot({ 10, 10 });
+		assertEqual("1st rect", { 0, 0, 10, 10 }, c1.slot.rect);
+
+		assertEqual("release non-existant", false, org.releaseSlot(1000));
+		assertEqual("release 1st rect", true, org.releaseSlot(c1.slot.index));
+		assertEqual("re-release rect", false, org.releaseSlot(c1.slot.index));
+
+		auto c2 = org.tryClaimSlot({ 100, 100 });
+		assertEqual("2nd rect", { 0, 0, 100, 100 }, c2.slot.rect);
+		assertEqual("release 2nd rect", true, org.releaseSlot(c2.slot.index));
+
+		auto c3 = org.tryClaimSlot({ 10, 10 });
+		assertEqual("3rd rect", { 0, 0, 10, 10 }, c3.slot.rect);
+
+		auto c4 = org.tryClaimSlot({ 10, 10 });
+		assertEqual("4th rect", { 10, 0, 10, 10 }, c4.slot.rect);
+
+		assertEqual("release 3rd rect", true, org.releaseSlot(c3.slot.index));
+
+		auto c5 = org.tryClaimSlot({ 10, 10 });
+		assertEqual("5th rect", { 0, 0, 10, 10 }, c5.slot.rect);
+
+		auto c6 = org.tryClaimSlot({ 10, 10 });
+		assertEqual("6th rect", { 20, 0, 10, 10 }, c6.slot.rect);
+	});
+
+	test("RectangleOrganizer text ring", []()
+	{
+		RectangleOrganizer org{{100, 100}};
+		auto c1 = org.tryClaimSlot({ 100, 10 });
+		assertEqual("1st rect", { 0, 0, 100, 10 }, c1.slot.rect);
+		auto c2 = org.tryClaimSlot({ 100, 10 });
+		assertEqual("2nd rect", { 0, 10, 100, 10 }, c2.slot.rect);
+		auto c3 = org.tryClaimSlot({ 100, 10 });
+		assertEqual("3rd rect", { 0, 20, 100, 10 }, c3.slot.rect);
+
+		assertEqual("release 1st", true, org.releaseSlot(c1.slot.index));
+
+		auto c4 = org.tryClaimSlot({ 100, 10 });
+		assertEqual("4th rect", { 0, 0, 100, 10 }, c4.slot.rect);
+
+		assertEqual("release 2nd", true, org.releaseSlot(c2.slot.index));
+
+		auto c5 = org.tryClaimSlot({ 100, 10 });
+		assertEqual("5th rect", { 0, 10, 100, 10 }, c5.slot.rect);
+
+		assertEqual("release 3rd", true, org.releaseSlot(c3.slot.index));
+
+		auto c6 = org.tryClaimSlot({ 100, 10 });
+		assertEqual("6th rect", { 0, 20, 100, 10 }, c6.slot.rect);
+	});
+
 	return summary();
 }

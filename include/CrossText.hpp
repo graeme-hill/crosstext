@@ -55,6 +55,16 @@ struct Rect
 	{
 		return y + height - 1;
 	}
+
+	inline bool operator==(Rect &other) const
+	{
+		return x == other.x
+			&& y == other.y
+			&& width == other.width
+			&& height == other.height;
+	}
+
+	friend std::ostream &operator<<(std::ostream &out, const Rect &rect);
 };
 
 struct Color
@@ -244,6 +254,13 @@ struct Slot
 {
 	Rect rect;
 	uint64_t index;
+
+	inline bool operator==(Slot &other)
+	{
+		return index == other.index && rect == other.rect;
+	}
+
+	friend std::ostream &operator<<(std::ostream &out, const Slot &slot);
 };
 
 struct SlotSearchResult
