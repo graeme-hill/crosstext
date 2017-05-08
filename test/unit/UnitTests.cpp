@@ -77,7 +77,7 @@ int main()
 {
 	// TextLayout
 
-	test("no chars", []()
+	test("TextLayout: no chars", []()
 	{
 		TextLayout layout({ 100, 100 });
 		auto metrics = layout.metrics();
@@ -87,7 +87,7 @@ int main()
 		assertEqual("line count", 0u, metrics.size.height);
 	});
 
-	test("one char", []()
+	test("TextLayout: one char", []()
 	{
 		TextLayout layout({ 100, 100 });
 		layout.nextChar(L"x"[0], { 20, 30 }, 0);
@@ -100,7 +100,7 @@ int main()
 		assertEqual("line height", 30u, metrics.lines.at(0).height);
 	});
 
-	test("one long word", []()
+	test("TextLayout: one long word", []()
 	{
 		TextLayout layout({ 30, 30 });
 		applyChars(layout, L"wasd", { 8, 8 }, 0);
@@ -115,7 +115,7 @@ int main()
 		assertEqual("2nd line height", 8u, metrics.lines.at(1).height);
 	});
 
-	test("space at end of line", []()
+	test("TextLayout: space at end of line", []()
 	{
 		TextLayout layout({ 30, 30 });
 		applyChars(layout, L"was d", { 8, 8 }, 0);
@@ -130,7 +130,7 @@ int main()
 		assertEqual("2nd line height", 8u, metrics.lines.at(1).height);
 	});
 
-	test("space before end of line", []()
+	test("TextLayout: space before end of line", []()
 	{
 		TextLayout layout({ 45, 45 });
 		applyChars(layout, L"was qwe", { 8, 8 }, 0);
@@ -145,7 +145,7 @@ int main()
 		assertEqual("2nd line height", 8u, metrics.lines.at(1).height);
 	});
 
-	test("wrapping sentence with weird whitespace", []()
+	test("TextLayout: wrapping sentence with weird whitespace", []()
 	{
 		TextLayout layout({ 150, 100 });
 		applyChars(
@@ -169,7 +169,7 @@ int main()
 		assertEqual("4th line height", 10u, metrics.lines.at(3).height);
 	});
 
-	test("one very long word", []()
+	test("TextLayout: one very long word", []()
 	{
 		TextLayout layout({ 105, 105 });
 		applyChars(
@@ -199,7 +199,7 @@ int main()
 		assertEqual("7st line height", 10u, metrics.lines.at(6).height);
 	});
 
-	test("one very long chunk of whitespace", []()
+	test("TextLayout: one very long chunk of whitespace", []()
 	{
 		TextLayout layout({ 105, 105 });
 		applyChars(
@@ -229,7 +229,7 @@ int main()
 		assertEqual("7th line height", 10u, metrics.lines.at(6).height);
 	});
 
-	test("wrap word with leading whitespace", []()
+	test("TextLayout: wrap word with leading whitespace", []()
 	{
 		TextLayout layout({ 105, 105 });
 		applyChars(
@@ -255,7 +255,7 @@ int main()
 
 	// RectangleOrganizer
 
-	test("RectangleOrganizer zero size tests", []()
+	test("RectangleOrganizer: zero size tests", []()
 	{
 		RectangleOrganizer org{{100, 100}};
 		auto c1 = org.tryClaimSlot({ 0, 10 });
@@ -266,7 +266,7 @@ int main()
 		assertEqual("no width or height not found", false, c3.isFound);
 	});
 
-	test("RectangleOrganizer additive positioning", []()
+	test("RectangleOrganizer: additive positioning", []()
 	{
 		RectangleOrganizer org{{100, 100}};
 		auto c1 = org.tryClaimSlot({ 10, 10 });
@@ -296,7 +296,7 @@ int main()
 		assertEqual("8th rect", { 20, 0, 80, 10 }, c8.slot.rect);
 	});
 
-	test("RectangleOrganizer adding and removing", []()
+	test("RectangleOrganizer: adding and removing", []()
 	{
 		RectangleOrganizer org{{100, 100}};
 		auto c1 = org.tryClaimSlot({ 10, 10 });
@@ -325,7 +325,7 @@ int main()
 		assertEqual("6th rect", { 20, 0, 10, 10 }, c6.slot.rect);
 	});
 
-	test("RectangleOrganizer text ring", []()
+	test("RectangleOrganizer: text ring", []()
 	{
 		RectangleOrganizer org{{100, 100}};
 		auto c1 = org.tryClaimSlot({ 100, 10 });
