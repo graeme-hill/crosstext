@@ -455,8 +455,8 @@ TextLayout::TextLayout(Size size) :
 
 void TextLayout::nextChar(wchar_t ch, Size charSize, unsigned kerning)
 {
-	_chars.push_back({ ch, charSize, _currentLine });
-	_penX += charSize.width;
+	_chars.push_back({ ch, charSize, kerning, _currentLine });
+	_penX += charSize.width + getKerningOffset(kerning);
 	checkWrap(ch);
 }
 
@@ -486,6 +486,11 @@ TextBlockMetrics TextLayout::metrics()
 		[](unsigned l, LineMetrics r) { return l + r.height; });
 
 	return metrics;
+}
+
+unsigned TextLayout::getKerningOffset(unsigned kerning)
+{
+	return _penX == 0 ? 0 : kerning;
 }
 
 void TextLayout::checkWrap(wchar_t ch)
@@ -525,7 +530,7 @@ void TextLayout::wrapFrom(unsigned index)
 	for (unsigned i = index; i < _chars.size(); i++)
 	{
 		_chars[i].line = _currentLine;
-		_penX += _chars[i].size.width;
+		_penX += _chars[i].size.width + getKerningOffset(_chars[i].kerning);
 	}
 }
 

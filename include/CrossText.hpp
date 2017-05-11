@@ -685,6 +685,7 @@ struct CharLayout
 {
 	wchar_t ch;
 	Size size;
+	unsigned kerning;
 	unsigned line;
 };
 
@@ -704,6 +705,7 @@ private:
 	bool isFirstCharOnLine(unsigned index);
 	unsigned getWrapCharCount();
 	unsigned getEndOfLineWhitespaceCount();
+	unsigned getKerningOffset(unsigned kerning);
 
 	Size _size;
 	std::vector<CharLayout> _chars;

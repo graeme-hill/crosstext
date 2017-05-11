@@ -291,7 +291,7 @@ int main()
 		applyChars(layout, L"D", { 10, 10 }, 2);
 		applyChars(layout, L"fg", { 10, 10 }, 3);
 		auto metrics = layout.metrics();
-		assertEqual("width", 60u, metrics.size.width);
+		assertEqual("width", 50u, metrics.size.width);
 		assertEqual("height", 10u, metrics.size.height);
 		assertEqual("line count", size_t{1}, metrics.lines.size());
 		assertEqual("1st line char count", 5u, metrics.lines.at(0).chars);
@@ -303,7 +303,8 @@ int main()
 		TextLayout layout({ 115, 115 });
 		applyChars(layout, L"hello worl", { 10, 10 }, 0);
 		applyChars(layout, L"d", { 10, 10 }, 6);
-		applyChars(layout, L" 12345", { 10, 12 }, 0);
+		applyChars(layout, L" ", { 10, 10 }, 0);
+		applyChars(layout, L"12345", { 10, 12 }, 0);
 		auto metrics = layout.metrics();
 		assertEqual("width", 115u, metrics.size.width);
 		assertEqual("height", 32u, metrics.size.height);
@@ -323,10 +324,10 @@ int main()
 		applyChars(layout, L"d", { 10, 10 }, 6);
 		applyChars(layout, L" 12345678", { 10, 10 }, 0);
 		auto metrics = layout.metrics();
-		assertEqual("width", 115u, metrics.size.width);
+		assertEqual("width", 105u, metrics.size.width);
 		assertEqual("height", 20u, metrics.size.height);
 		assertEqual("line count", size_t{2}, metrics.lines.size());
-		assertEqual("1st line char count", 6u, metrics.lines.at(0).chars);
+		assertEqual("1st line char count", 9u, metrics.lines.at(0).chars);
 		assertEqual("1st line height", 10u, metrics.lines.at(0).height);
 		assertEqual("2nd line char count", 10u, metrics.lines.at(1).chars);
 		assertEqual("2nd line height", 10u, metrics.lines.at(1).height);
