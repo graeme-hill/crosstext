@@ -253,6 +253,85 @@ int main()
 		assertEqual("4th line height", 10u, metrics.lines.at(3).height);
 	});
 
+	test("TextLayout: various char sizes", []()
+	{
+		TextLayout layout({ 100, 100 });
+		applyChars(layout, L"as", { 10, 20 }, 0);
+		applyChars(layout, L"D", { 20, 30 }, 0);
+		applyChars(layout, L"fg", { 5, 10 }, 0);
+		auto metrics = layout.metrics();
+		assertEqual("width", 50u, metrics.size.width);
+		assertEqual("height", 30u, metrics.size.height);
+		assertEqual("line count", size_t{1}, metrics.lines.size());
+		assertEqual("1st line char count", 5u, metrics.lines.at(0).chars);
+		assertEqual("1st line height", 30u, metrics.lines.at(0).height);
+	});
+
+	test("TextLayout: various char sizes multi-line", []()
+	{
+		TextLayout layout({ 100, 100 });
+		applyChars(layout, L"hell", { 10, 10 }, 0);
+		applyChars(layout, L"o ", { 20, 20 }, 0);
+		applyChars(layout, L"WORLD", { 12, 12 }, 0);
+		applyChars(layout, L"!", { 30, 30 }, 0);
+		auto metrics = layout.metrics();
+		assertEqual("width", 100u, metrics.size.width);
+		assertEqual("height", 50u, metrics.size.height);
+		assertEqual("line count", size_t{2}, metrics.lines.size());
+		assertEqual("1st line char count", 6u, metrics.lines.at(0).chars);
+		assertEqual("1st line height", 20u, metrics.lines.at(0).height);
+		assertEqual("2nd line char count", 6u, metrics.lines.at(1).chars);
+		assertEqual("2nd line height", 30u, metrics.lines.at(1).height);
+	});
+
+	test("TextLayout: kerning", []()
+	{
+		TextLayout layout({ 100, 100 });
+		applyChars(layout, L"as", { 10, 10 }, 0);
+		applyChars(layout, L"D", { 10, 10 }, 2);
+		applyChars(layout, L"fg", { 10, 10 }, 3);
+		auto metrics = layout.metrics();
+		assertEqual("width", 60u, metrics.size.width);
+		assertEqual("height", 10u, metrics.size.height);
+		assertEqual("line count", size_t{1}, metrics.lines.size());
+		assertEqual("1st line char count", 5u, metrics.lines.at(0).chars);
+		assertEqual("1st line height", 10u, metrics.lines.at(0).height);
+	});
+
+	test("TextLayout: kerning wrap word", []()
+	{
+		TextLayout layout({ 115, 115 });
+		applyChars(layout, L"hello worl", { 10, 10 }, 0);
+		applyChars(layout, L"d", { 10, 10 }, 6);
+		applyChars(layout, L" 12345", { 10, 12 }, 0);
+		auto metrics = layout.metrics();
+		assertEqual("width", 115u, metrics.size.width);
+		assertEqual("height", 32u, metrics.size.height);
+		assertEqual("line count", size_t{3}, metrics.lines.size());
+		assertEqual("1st line char count", 6u, metrics.lines.at(0).chars);
+		assertEqual("1st line height", 10u, metrics.lines.at(0).height);
+		assertEqual("2nd line char count", 6u, metrics.lines.at(1).chars);
+		assertEqual("2nd line height", 10u, metrics.lines.at(1).height);
+		assertEqual("3rd line char count", 5u, metrics.lines.at(2).chars);
+		assertEqual("3rd line height", 12u, metrics.lines.at(2).height);
+	});
+
+	test("TextLayout: kerning wrap letter", []()
+	{
+		TextLayout layout({ 105, 105 });
+		applyChars(layout, L"helloworl", { 10, 10 }, 0);
+		applyChars(layout, L"d", { 10, 10 }, 6);
+		applyChars(layout, L" 12345678", { 10, 10 }, 0);
+		auto metrics = layout.metrics();
+		assertEqual("width", 115u, metrics.size.width);
+		assertEqual("height", 20u, metrics.size.height);
+		assertEqual("line count", size_t{2}, metrics.lines.size());
+		assertEqual("1st line char count", 6u, metrics.lines.at(0).chars);
+		assertEqual("1st line height", 10u, metrics.lines.at(0).height);
+		assertEqual("2nd line char count", 10u, metrics.lines.at(1).chars);
+		assertEqual("2nd line height", 10u, metrics.lines.at(1).height);
+	});
+
 	// RectangleOrganizer
 
 	test("RectangleOrganizer: zero size tests", []()
