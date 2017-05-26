@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.5.1)
 project(crosstext)
 
-include_directories(include)
+include_directories(.)
 set(CMAKE_CXX_STANDARD 14)
 
-set(BASE_SOURCES src/CrossText.cpp)
-set(FREETYPE_SOURCES src/FreeType.cpp)
+set(BASE_SOURCES CrossText.cpp)
+set(FREETYPE_SOURCES FreeType.cpp)
 set(CT_TEST_SOURCES test/unit/UnitTests.cpp)
 set(FT_TEST_SOURCES test/freetype/fttest.cpp)
 
