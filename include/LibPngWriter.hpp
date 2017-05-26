@@ -5,7 +5,7 @@
 #include <vector>
 #include <png.h>
 
-namespace ct
+namespace xt
 {
 	class LibPngWriter
 	{

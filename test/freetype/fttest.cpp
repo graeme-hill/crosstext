@@ -17,11 +17,11 @@ The only thing that client code should have to do differently per platform is
 construct their text manager. eg:
 
 #ifdef LINUX
-using TextManager = ct::TextManager<ct::FreeType, ct::OpenGlWriter>;
+using TextManager = xt::TextManager<xt::FreeType, xt::OpenGlWriter>;
 #elif WINDOWS
-using TextManager = ct::TextManager<ct::DirectWrite, ct::DirectXWriter>;
+using TextManager = xt::TextManager<xt::DirectWrite, xt::DirectXWriter>;
 #elif MAC
-using TextManager = ct::TextManager<ct::CoreText, ct::OpenGlWriter>;
+using TextManager = xt::TextManager<xt::CoreText, xt::OpenGlWriter>;
 #endif
 using TextBlock = TextManager::TextBlock;
 using Font = TextManager::Font;
@@ -37,14 +37,14 @@ Text::Style style1
 Text::Block
 */
 
-using Text = ct::TextPlatform<ct::FreeType<ct::LibPngWriter>>;
+using Text = xt::TextPlatform<xt::FreeType<xt::LibPngWriter>>;
 
 int test3()
 {
-	ct::LibPngWriter t1({1024, 1024}, "./one_");
-	ct::LibPngWriter t2({1024, 1024}, "./two_");
+	xt::LibPngWriter t1({1024, 1024}, "./one_");
+	xt::LibPngWriter t2({1024, 1024}, "./two_");
 
-	std::vector<ct::LibPngWriter> textureWriters;
+	std::vector<xt::LibPngWriter> textureWriters;
 	textureWriters.push_back(std::move(t1));
 	textureWriters.push_back(std::move(t2));
 

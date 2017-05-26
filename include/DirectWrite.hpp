@@ -12,7 +12,7 @@
 #define DEFAULT_TEXTURE_SIZE 4096
 #define DEFAULT_TEXTURE_COUNT 1
 
-namespace ct
+namespace xt
 {
 	class DirectWriteRenderOptions
 	{

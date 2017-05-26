@@ -10,7 +10,7 @@
 #define SPACIAL_INDEX_BLOCK_WIDTH 128
 #define SPACIAL_INDED_BLOCK_HEIGHT 16
 
-#define BEGIN_NAMESPACE namespace ct {
+#define BEGIN_NAMESPACE namespace xt {
 #define END_NAMESPACE }
 
 BEGIN_NAMESPACE
@@ -669,7 +669,7 @@ public:
 	using Font = typename TTextSystem::Font;
 	using Manager = TextManager<TextPlatform<TTextSystem>>;
 	using Block = TextBlock<TextPlatform<TTextSystem>>;
-	using Style = ct::Style<Font>;
+	using Style = xt::Style<Font>;
 	using Options = TextOptions<Font>;
 
 private:

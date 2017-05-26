@@ -1,7 +1,7 @@
 #include "DirectWrite.hpp"
 #include <iostream>
 
-namespace ct
+namespace xt
 {
 	DirectWriteRenderOptions::DirectWriteRenderOptions() :
 		DirectWriteRenderOptions({ DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE }, DEFAULT_TEXTURE_COUNT)

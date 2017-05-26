@@ -3,7 +3,7 @@
 #include <functional>
 #include "CrossText.hpp"
 
-using namespace ct;
+using namespace xt;
 
 unsigned totalFailures = 0;
 unsigned totalAssertions = 0;

@@ -9,57 +9,57 @@
 
 int test1()
 {
-	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
-	ct::TextManager manager(options);
+	xt::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
+	xt::TextManager manager(options);
 
-	ct::Font font1
+	xt::Font font1
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		200.0f,
 		L"en-US",
 		{ 0xf00fffff }
 	};
 
-	ct::Font font2
+	xt::Font font2
 	{
 		L"Times New Roman",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		60.0f,
 		L"en-US",
 		{ 0xff00ffff }
 	};
 
-	ct::Font font3
+	xt::Font font3
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		18.0f,
 		L"en-US",
 		{ 0xffff00ff }
 	};
 
-	ct::FontRange range{ font2, { 3, 2 } };
+	xt::FontRange range{ font2, { 3, 2 } };
 
-	std::vector<ct::TextBlock> blocks;
+	std::vector<xt::TextBlock> blocks;
 
-	ct::Timer t;
+	xt::Timer t;
 
 	for (unsigned int i = 0; i < 60; ++i)
 	{
-		ct::TextBlock test(manager, std::wstring(L"Hello World"), ct::TextOptions::fromFont(font1));
+		xt::TextBlock test(manager, std::wstring(L"Hello World"), xt::TextOptions::fromFont(font1));
 		blocks.push_back(std::move(test));
 	}
 
 	//for (unsigned int i = 0; i < 1000; ++i)
 	//{
-	//	ct::TextBlock test(manager, std::wstring(L"Hello World"), font3);
+	//	xt::TextBlock test(manager, std::wstring(L"Hello World"), font3);
 	//	blocks.push_back(std::move(test));
 	//}
 
@@ -78,18 +78,18 @@ int test1()
 
 int test2()
 {
-	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 4);
-	ct::TextManager manager(options);
+	xt::DirectWriteRenderOptions options({ 4096, 4096 }, 4);
+	xt::TextManager manager(options);
 
 	std::wstring letters(L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-	std::vector<ct::Font> fonts;
+	std::vector<xt::Font> fonts;
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		60.0f,
 		L"en-US",
 		{ 0x000fffff }
@@ -98,9 +98,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Times New Roman",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		40.0f,
 		L"en-US",
 		{ 0xff99ffff }
@@ -109,9 +109,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		18.0f,
 		L"en-US",
 		{ 0xff0099ff }
@@ -120,9 +120,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		20.0f,
 		L"en-US",
 		{ 0x99ff00ff }
@@ -131,9 +131,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		22.0f,
 		L"en-US",
 		{ 0xff9900ff }
@@ -142,9 +142,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		18.0f,
 		L"en-US",
 		{ 0xff0099ff }
@@ -153,9 +153,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		20.0f,
 		L"en-US",
 		{ 0x99ff00ff }
@@ -164,9 +164,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		22.0f,
 		L"en-US",
 		{ 0xff9900ff }
@@ -175,9 +175,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		18.0f,
 		L"en-US",
 		{ 0xff0099ff }
@@ -186,9 +186,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		20.0f,
 		L"en-US",
 		{ 0x99ff00ff }
@@ -197,9 +197,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		22.0f,
 		L"en-US",
 		{ 0xff9900ff }
@@ -208,9 +208,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		18.0f,
 		L"en-US",
 		{ 0xff0099ff }
@@ -219,9 +219,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		20.0f,
 		L"en-US",
 		{ 0x99ff00ff }
@@ -230,9 +230,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		22.0f,
 		L"en-US",
 		{ 0xff9900ff }
@@ -241,9 +241,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		18.0f,
 		L"en-US",
 		{ 0xff0099ff }
@@ -252,9 +252,9 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		20.0f,
 		L"en-US",
 		{ 0x99ff00ff }
@@ -263,15 +263,15 @@ int test2()
 	fonts.push_back(
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		22.0f,
 		L"en-US",
 		{ 0xff9900ff }
 	});
 
-	std::vector<ct::TextBlock> blocks;
+	std::vector<xt::TextBlock> blocks;
 
 	double min = 1000000000000000000.0f;
 	double max = 0.0f;
@@ -292,8 +292,8 @@ int test2()
 			text += letters[charIndex];
 		}
 
-		ct::Timer t;
-		ct::TextBlock block(manager, text, ct::TextOptions::fromFont(font));
+		xt::Timer t;
+		xt::TextBlock block(manager, text, xt::TextOptions::fromFont(font));
 		auto millis = t.millis();
 		if (millis < min) { min = millis; }
 		if (millis > max) { max = millis; }
@@ -319,8 +319,8 @@ int test2()
 				text += letters[charIndex];
 			}
 
-			ct::Timer t;
-			ct::TextBlock block(manager, text, ct::TextOptions::fromFont(font));
+			xt::Timer t;
+			xt::TextBlock block(manager, text, xt::TextOptions::fromFont(font));
 			auto millis = t.millis();
 			if (millis < min) { min = millis; }
 			if (millis > max) { max = millis; }
@@ -331,7 +331,7 @@ int test2()
 		else
 		{
 			auto randomIndex = rand() % blocks.size();
-			ct::Timer t;
+			xt::Timer t;
 			blocks.erase(blocks.begin() + randomIndex);
 			auto millis = t.millis();
 			if (millis < min) { min = millis; }
@@ -354,8 +354,8 @@ int test2()
 			text += letters[charIndex];
 		}
 
-		ct::Timer t;
-		ct::TextBlock block(manager, text, ct::TextOptions::fromFont(font));
+		xt::Timer t;
+		xt::TextBlock block(manager, text, xt::TextOptions::fromFont(font));
 		auto millis = t.millis();
 		if (millis < min) { min = millis; }
 		if (millis > max) { max = millis; }
@@ -381,28 +381,28 @@ int test2()
 
 int test3()
 {
-	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
-	ct::TextManager manager(options);
+	xt::DirectWriteRenderOptions options({ 4096, 4096 }, 2);
+	xt::TextManager manager(options);
 
-	ct::Font font1
+	xt::Font font1
 	{
 		L"Times New Roman",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		40.0f,
 		L"en-US",
 		{ 0xff0000ff }
 	};
 
-	std::vector<ct::TextBlock> blocks;
+	std::vector<xt::TextBlock> blocks;
 
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Hello World"),
-		ct::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"Some other text"),
-		ct::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"blah blah"),
-		ct::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"Hello World"),
+		xt::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"Some other text"),
+		xt::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"blah blah"),
+		xt::TextOptions::fromFont(font1).withBackground({ 0x00000001 })));
 
 	std::wstring fileNameWithoutSuffix(L"C:\\temp\\_");
 	for (auto &texture : manager.textures())
@@ -416,43 +416,43 @@ int test3()
 
 int test4()
 {
-	ct::DirectWriteRenderOptions options({ 4096, 4096 }, 1);
-	ct::TextManager manager(options);
+	xt::DirectWriteRenderOptions options({ 4096, 4096 }, 1);
+	xt::TextManager manager(options);
 
-	ct::Font font1
+	xt::Font font1
 	{
 		L"Arial",
-		ct::FontWeight::Normal,
-		ct::FontStyle::Normal,
-		ct::FontStretch::Normal,
+		xt::FontWeight::Normal,
+		xt::FontStyle::Normal,
+		xt::FontStretch::Normal,
 		18.0f,
 		L"en-US",
 		{ 0xffff00ff }
 	};
 
-	std::vector<ct::TextBlock> blocks;
+	std::vector<xt::TextBlock> blocks;
 
 	double total = 0;
 	double min = 0;
 	double max = 0;
 
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
-	blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  ct::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
+	blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."),  xt::TextOptions::fromFont(font1)));
 
 	for (int i = 0; i < 10000; i++)
 	{
-		ct::Timer t;
+		xt::Timer t;
 		blocks.erase(blocks.begin());
-		blocks.push_back(ct::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), ct::TextOptions::fromFont(font1)));
+		blocks.push_back(xt::TextBlock(manager, std::wstring(L"This is a sample message. Just want to test what happens when it is relatively long but still all on one line. :-) Already did this once but even then it was still way too short.... I need this to be the worst case scenario in a chat dialog or something like that so I'll just type a bit more things."), xt::TextOptions::fromFont(font1)));
 		auto millis = t.millis();
 		total += millis;
 		if (millis < min) { min = millis; }
