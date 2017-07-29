@@ -1,7 +1,7 @@
 #include "CrossText.hpp"
 #include <numeric>
 
-BEGIN_NAMESPACE
+BEGIN_XT_NAMESPACE
 
 // Rect
 
@@ -610,4 +610,4 @@ bool TextLayout::isWordDivider(wchar_t ch)
 	return isWhitespace(ch) || ch == '-';
 }
 
-END_NAMESPACE
+END_XT_NAMESPACE

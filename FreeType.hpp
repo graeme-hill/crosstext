@@ -10,7 +10,7 @@
 #define DEFAULT_TEXTURE_SIZE 4096
 #define DEFAULT_TEXTURE_COUT 1
 
-BEGIN_NAMESPACE
+BEGIN_XT_NAMESPACE
 
 class FreeTypeSysContext
 {
@@ -200,4 +200,4 @@ public:
 	using ImageData = TImageData;
 };
 
-END_NAMESPACE
+END_XT_NAMESPACE

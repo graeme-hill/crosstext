@@ -1,7 +1,7 @@
 #include "FreeType.hpp"
 #include <iostream>
 
-BEGIN_NAMESPACE
+BEGIN_XT_NAMESPACE
 
 // FreeTypeSysContext
 
@@ -92,4 +92,4 @@ TextBlockMetrics FreeTypeMetricBuilder::done()
 	return _layout.metrics();
 }
 
-END_NAMESPACE
+END_XT_NAMESPACE

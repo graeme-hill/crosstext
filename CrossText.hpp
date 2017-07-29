@@ -10,10 +10,10 @@
 #define SPACIAL_INDEX_BLOCK_WIDTH 128
 #define SPACIAL_INDED_BLOCK_HEIGHT 16
 
-#define BEGIN_NAMESPACE namespace xt {
-#define END_NAMESPACE }
+#define BEGIN_XT_NAMESPACE namespace xt {
+#define END_XT_NAMESPACE }
 
-BEGIN_NAMESPACE
+BEGIN_XT_NAMESPACE
 
 struct Size
 {
@@ -713,4 +713,4 @@ private:
 	unsigned _currentLine;
 };
 
-END_NAMESPACE
+END_XT_NAMESPACE
