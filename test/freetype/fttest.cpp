@@ -41,10 +41,10 @@ using Text = xt::TextPlatform<xt::FreeType<xt::LibPngWriter>>;
 
 int test3()
 {
-	xt::LibPngWriter t1({1024, 1024}, "./one_");
-	xt::LibPngWriter t2({1024, 1024}, "./two_");
+	Text::ImageData t1({1024, 1024}, "./one_");
+	Text::ImageData t2({1024, 1024}, "./two_");
 
-	std::vector<xt::LibPngWriter> textureWriters;
+	std::vector<Text::ImageData> textureWriters;
 	textureWriters.push_back(std::move(t1));
 	textureWriters.push_back(std::move(t2));
 

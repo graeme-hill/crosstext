@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CrossText.hpp"
 #include <iostream>
 #include <string>
